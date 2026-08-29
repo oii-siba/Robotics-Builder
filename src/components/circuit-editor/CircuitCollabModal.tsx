@@ -81,7 +81,7 @@ export function CircuitCollabModal({ isOpen, onClose }: CircuitCollabModalProps)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
       <div 
         className="fixed inset-0"
         onClick={onClose}

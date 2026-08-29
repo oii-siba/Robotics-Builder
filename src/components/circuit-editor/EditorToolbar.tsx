@@ -276,7 +276,7 @@ export function EditorToolbar() {
   ];
 
   return (
-    <header className="h-12 bg-slate-900 border-b border-slate-800 px-2 sm:px-4 flex items-center justify-between relative z-40 select-none text-xs text-white shadow-md gap-2">
+    <header className="h-12 bg-slate-900 border-b border-slate-800 px-2 sm:px-4 flex items-center justify-between relative z-30 select-none text-xs text-white shadow-md gap-2">
       {/* Hidden File Input for JSON Upload */}
       <input
         ref={fileInputRef}

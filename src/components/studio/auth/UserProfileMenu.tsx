@@ -67,7 +67,7 @@ export function UserProfileMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-1.5 z-50 text-slate-100 animate-in fade-in zoom-in-95 font-sans">
+        <div className="absolute right-0 top-full mt-1.5 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-1.5 z-[100] text-slate-100 animate-in fade-in zoom-in-95 font-sans">
           {/* User Info Header */}
           <div className="p-2.5 bg-slate-950/60 rounded-xl border border-slate-800/80 mb-1">
             <div className="font-bold text-xs text-white truncate">{displayName}</div>

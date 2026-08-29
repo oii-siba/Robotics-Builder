@@ -62,7 +62,7 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
   ];
 
   return (
-    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2.5 sm:px-4 relative z-30 select-none shadow-md">
+    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2.5 sm:px-4 relative z-50 select-none shadow-md">
       {/* Brand & Title */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
@@ -105,7 +105,7 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
             </button>
 
             {showPresetsMenu && (
-              <div className="absolute left-0 top-full mt-1.5 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-[100] text-xs text-white animate-in fade-in zoom-in-95">
                 <div className="text-[10px] uppercase font-mono text-slate-500 px-2 py-1">
                   Load Preset Robot
                 </div>
