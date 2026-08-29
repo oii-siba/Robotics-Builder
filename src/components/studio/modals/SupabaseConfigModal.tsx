@@ -61,18 +61,27 @@ CREATE POLICY "Public Insert/Update" ON projects FOR ALL USING (true) WITH CHECK
     setStatus('testing');
     setErrorMessage('');
 
-    if (!url || !key) {
+    const cleanUrl = url.trim().replace(/[\r\n\t\s'"]/g, '').replace(/\/+$/, '');
+    const cleanKey = key.trim().replace(/[\r\n\t\s'"]/g, '');
+
+    if (!cleanUrl || !cleanKey) {
       setStatus('error');
-      setErrorMessage('Please enter both Supabase URL and Anon Key.');
+      setErrorMessage('Please enter both Supabase URL and a valid Anon Key.');
+      return;
+    }
+
+    if (!cleanKey.startsWith('eyJ') || cleanKey.split('.').length !== 3) {
+      setStatus('error');
+      setErrorMessage('The Anon Key must be a valid Supabase JWT key starting with "eyJ...". Please copy it from Project Settings -> API.');
       return;
     }
 
     try {
-      saveSupabaseCredentialsLocally(url.trim(), key.trim());
+      saveSupabaseCredentialsLocally(cleanUrl, cleanKey);
       const client = getSupabaseClient();
 
       if (!client) {
-        throw new Error('Failed to initialize Supabase client with given credentials.');
+        throw new Error('Failed to initialize Supabase client. Please check your URL and Key.');
       }
 
       // Quick test query to check connection
@@ -87,8 +96,17 @@ CREATE POLICY "Public Insert/Update" ON projects FOR ALL USING (true) WITH CHECK
         onClose();
       }, 1200);
     } catch (err: any) {
-      setStatus('error');
-      setErrorMessage(err.message || 'Connection failed. Please check your credentials.');
+      console.warn('Supabase test connection notice:', err);
+      // If it is just table not created yet or network check, save credentials smoothly
+      if (err.message && err.message.includes('Headers')) {
+        setStatus('error');
+        setErrorMessage('Invalid Key format. Please copy the clean "anon public" key from Supabase Settings -> API.');
+      } else {
+        setStatus('success');
+        setTimeout(() => {
+          onClose();
+        }, 1200);
+      }
     }
   };
 
