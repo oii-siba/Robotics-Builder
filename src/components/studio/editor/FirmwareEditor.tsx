@@ -196,17 +196,17 @@ while True:
   return (
     <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white select-none">
       {/* Editor Top Bar */}
-      <div className="h-12 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4">
-        <div className="flex items-center gap-3">
+      <div className="h-12 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2 sm:px-4 overflow-x-auto custom-scrollbar gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <div className="flex items-center gap-1.5 font-bold text-sky-400 text-xs">
-            <FileCode className="w-4 h-4" />
-            <span>{codeData.fileName}</span>
+            <FileCode className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate max-w-[100px] xs:max-w-none">{codeData.fileName}</span>
           </div>
 
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="h-4 w-px bg-slate-800 flex-shrink-0" />
 
           {/* Template Selector */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <select
               onChange={(e) => {
@@ -217,13 +217,13 @@ while True:
                   setCodeLanguage(t.lang);
                 }
               }}
-              className="bg-slate-950 border border-slate-800 rounded-md px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-sky-500"
+              className="bg-slate-950 border border-slate-800 rounded-md px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-sky-500 max-w-[140px] xs:max-w-[200px]"
               defaultValue=""
             >
-              <option value="" disabled>Load Firmware Template...</option>
+              <option value="" disabled>Load Template...</option>
               {codeTemplates.map((t) => (
                 <option key={t.name} value={t.name}>
-                  {t.name} ({t.fileName})
+                  {t.name}
                 </option>
               ))}
             </select>
@@ -231,34 +231,37 @@ while True:
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <button
             onClick={handleCompile}
             disabled={isCompiling}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-md active:scale-95 disabled:opacity-50"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-md active:scale-95 disabled:opacity-50"
+            title="Verify & Compile Firmware"
           >
             {isCompiling ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             ) : (
               <Play className="w-3.5 h-3.5" />
             )}
-            <span>{isCompiling ? 'Validating...' : 'Verify / Compile'}</span>
+            <span className="hidden xs:inline">{isCompiling ? 'Validating...' : 'Verify / Build'}</span>
           </button>
 
           <button
             onClick={handleCopy}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            title="Copy Code"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? 'Copied' : 'Copy'}</span>
+            <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
           </button>
 
           <button
             onClick={handleDownload}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            title="Download .ino / .py"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download</span>
+            <span className="hidden sm:inline">Download</span>
           </button>
         </div>
       </div>
@@ -272,8 +275,9 @@ while True:
           theme="vs-dark"
           onChange={(val) => setCode(val || '')}
           options={{
-            minimap: { enabled: true },
-            fontSize: 13,
+            minimap: { enabled: false },
+            wordWrap: 'on',
+            fontSize: 12,
             lineNumbers: 'on',
             scrollBeyondLastLine: false,
             automaticLayout: true,

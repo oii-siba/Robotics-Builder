@@ -28,7 +28,12 @@ import { CIRCUIT_COMPONENTS_LIBRARY } from '@/lib/circuit-engine/components-libr
 import { ComponentCategory, CircuitComponentDef } from '@/lib/circuit-engine/types';
 import { useCircuitStore } from '@/lib/circuit-engine/circuit-store';
 
-export function ComponentPalette() {
+interface ComponentPaletteProps {
+  isMobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function ComponentPalette({ isMobileOpen, onClose }: ComponentPaletteProps) {
   const [selectedCategory, setSelectedCategory] = useState<ComponentCategory | 'all'>('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,7 +98,7 @@ export function ComponentPalette() {
   };
 
   return (
-    <aside className="w-80 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-20 select-none shadow-2xl">
+    <aside className="w-full sm:w-80 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-20 select-none shadow-2xl">
       {/* Header */}
       <div className="p-3 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -102,12 +107,23 @@ export function ComponentPalette() {
           </div>
           <div>
             <h3 className="text-xs font-bold text-slate-100 font-mono">Robotics Catalog</h3>
-            <span className="text-[10px] text-slate-400">Drag or click to place</span>
+            <span className="text-[10px] text-slate-400">Click or drag to place</span>
           </div>
         </div>
-        <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
-          {CIRCUIT_COMPONENTS_LIBRARY.length} Items
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
+            {CIRCUIT_COMPONENTS_LIBRARY.length}
+          </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors lg:hidden"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search Input */}

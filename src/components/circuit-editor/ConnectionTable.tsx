@@ -6,7 +6,11 @@ import { useCircuitStore } from '@/lib/circuit-engine/circuit-store';
 import { CIRCUIT_COMPONENTS_LIBRARY } from '@/lib/circuit-engine/components-library';
 import { Point } from '@/lib/circuit-engine/types';
 
-export function ConnectionTable() {
+interface ConnectionTableProps {
+  onClose?: () => void;
+}
+
+export function ConnectionTable({ onClose }: ConnectionTableProps) {
   const wires = useCircuitStore((state) => state.wires);
   const components = useCircuitStore((state) => state.components);
   const removeWire = useCircuitStore((state) => state.removeWire);
@@ -15,7 +19,7 @@ export function ConnectionTable() {
   if (wires.length === 0) return null;
 
   const getPinName = (componentId?: string, pinId?: string, point?: Point) => {
-    if (point) return `Wire Tap Node (${Math.round(point.x)}, ${Math.round(point.y)})`;
+    if (point) return `Node (${Math.round(point.x)}, ${Math.round(point.y)})`;
     if (!componentId || !pinId) return 'Wire Junction';
 
     const comp = components.find((c) => c.instanceId === componentId);
@@ -41,19 +45,29 @@ export function ConnectionTable() {
   };
 
   return (
-    <div className="h-36 bg-slate-900/95 border-t border-slate-800 flex flex-col p-2.5 font-mono text-xs overflow-hidden select-none">
+    <div className="h-36 sm:h-40 bg-slate-900/95 border-t border-slate-800 flex flex-col p-2 sm:p-2.5 font-mono text-xs overflow-hidden select-none">
       <div className="flex items-center justify-between pb-1.5 text-[11px] text-slate-400 font-bold border-b border-slate-800">
-        <span className="flex items-center gap-1.5 text-sky-400">
-          <Zap className="w-3.5 h-3.5" /> Robotics Connection Documentation ({wires.length} Wires)
+        <span className="flex items-center gap-1.5 text-sky-400 truncate">
+          <Zap className="w-3.5 h-3.5 flex-shrink-0" /> Netlist ({wires.length} Wires)
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={handleExportNetlist}
             className="text-slate-400 hover:text-white flex items-center gap-1 text-[10px]"
+            title="Download Netlist"
           >
             <Download className="w-3 h-3" />
-            <span>Export Pinout</span>
+            <span className="hidden xs:inline">Export</span>
           </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 text-[10px]"
+              title="Close Netlist"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 

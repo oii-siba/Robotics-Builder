@@ -4,10 +4,13 @@ import {
   CircuitWire, 
   EditorTool, 
   CircuitProjectData,
-  Point
+  Point,
+  Collaborator,
+  CollabRole,
 } from './types';
 import { CIRCUIT_COMPONENTS_LIBRARY } from './components-library';
 import { getSupabaseClient } from '../supabase/client';
+import { collabSyncService, generateCollabUser } from './collab-sync';
 
 interface CircuitState {
   projectId: string;
@@ -23,6 +26,13 @@ interface CircuitState {
   showGrid: boolean;
   snapToGrid: boolean;
   gridSize: number;
+
+  // Realtime Partnership & Collaboration
+  isCollaborating: boolean;
+  collabRoomId: string | null;
+  collabRole: CollabRole;
+  myCollabUser: Collaborator | null;
+  collaborators: Collaborator[];
 
   // Tools & Selection
   activeTool: EditorTool;
@@ -61,8 +71,16 @@ interface CircuitState {
   setSelectedWire: (id: string | null) => void;
   setZoom: (zoom: number) => void;
   setPan: (x: number, y: number) => void;
+  setZoomAndPan: (zoom: number, pan: { x: number; y: number }) => void;
+  fitToScreen: (containerWidth: number, containerHeight: number) => void;
   toggleGrid: () => void;
   toggleSnapToGrid: () => void;
+
+  // Realtime Collaboration Actions
+  startCollaboration: (roomId?: string, role?: CollabRole) => string;
+  joinCollaboration: (roomId: string, role?: CollabRole) => void;
+  leaveCollaboration: () => void;
+  updateMyCursor: (x: number, y: number, activeComponentId?: string | null) => void;
 
   addComponent: (defId: string, x: number, y: number) => string;
   updateComponentPosition: (instanceId: string, x: number, y: number) => void;
@@ -117,6 +135,12 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
   mousePos: { x: 0, y: 0 },
   activeWireColor: '#38BDF8',
 
+  isCollaborating: false,
+  collabRoomId: null,
+  collabRole: 'editor',
+  myCollabUser: null,
+  collaborators: [],
+
   history: [{ components: defaultComponents, wires: defaultWires }],
   historyIndex: 0,
 
@@ -125,10 +149,126 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
   setActiveWireColor: (color) => set({ activeWireColor: color }),
   setSelectedComponent: (id) => set({ selectedComponentId: id, selectedWireId: null }),
   setSelectedWire: (id) => set({ selectedWireId: id, selectedComponentId: null }),
-  setZoom: (zoom) => set({ zoom: Math.max(0.3, Math.min(2.5, zoom)) }),
-  setPan: (x, y) => set({ pan: { x, y } }),
+  setZoom: (zoom) => set({ zoom: Math.max(0.2, Math.min(3.0, Number(zoom.toFixed(3)))) }),
+  setPan: (x, y) => set({ pan: { x: Math.round(x), y: Math.round(y) } }),
+  setZoomAndPan: (zoom, pan) =>
+    set({
+      zoom: Math.max(0.2, Math.min(3.0, Number(zoom.toFixed(3)))),
+      pan: { x: Math.round(pan.x), y: Math.round(pan.y) },
+    }),
+  fitToScreen: (containerWidth, containerHeight) => {
+    const { components } = get();
+    if (components.length === 0) {
+      set({ zoom: 1, pan: { x: 40, y: 30 } });
+      return;
+    }
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    components.forEach((comp) => {
+      const def = CIRCUIT_COMPONENTS_LIBRARY.find((c) => c.id === comp.defId);
+      const w = def?.width || 80;
+      const h = def?.height || 80;
+      minX = Math.min(minX, comp.x);
+      minY = Math.min(minY, comp.y);
+      maxX = Math.max(maxX, comp.x + w);
+      maxY = Math.max(maxY, comp.y + h);
+    });
+
+    const contentWidth = Math.max(maxX - minX, 120);
+    const contentHeight = Math.max(maxY - minY, 120);
+    const padding = 80;
+
+    const availableWidth = Math.max(containerWidth - padding * 2, 200);
+    const availableHeight = Math.max(containerHeight - padding * 2, 200);
+
+    const scaleX = availableWidth / contentWidth;
+    const scaleY = availableHeight / contentHeight;
+    const targetZoom = Math.max(0.25, Math.min(1.5, Math.min(scaleX, scaleY)));
+
+    const contentCenterX = minX + contentWidth / 2;
+    const contentCenterY = minY + contentHeight / 2;
+
+    const newPanX = containerWidth / 2 - contentCenterX * targetZoom;
+    const newPanY = containerHeight / 2 - contentCenterY * targetZoom;
+
+    set({
+      zoom: Math.max(0.2, Math.min(3.0, Number(targetZoom.toFixed(3)))),
+      pan: { x: Math.round(newPanX), y: Math.round(newPanY) },
+    });
+  },
   toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
   toggleSnapToGrid: () => set((state) => ({ snapToGrid: !state.snapToGrid })),
+
+  // Realtime Collaboration Actions
+  startCollaboration: (customRoomId, role = 'editor') => {
+    const state = get();
+    const rawId = state.projectId.replace(/^circuit-/, '');
+    const roomId = customRoomId || state.collabRoomId || `collab-${rawId.slice(0, 8)}`;
+    const user = generateCollabUser(role, true);
+
+    collabSyncService.initRoom(roomId, user);
+
+    set({
+      isCollaborating: true,
+      collabRoomId: roomId,
+      collabRole: role,
+      myCollabUser: user,
+      collaborators: [user],
+    });
+
+    return roomId;
+  },
+
+  joinCollaboration: (roomId, role = 'editor') => {
+    const user = generateCollabUser(role, false);
+    collabSyncService.initRoom(roomId, user);
+
+    set({
+      isCollaborating: true,
+      collabRoomId: roomId,
+      collabRole: role,
+      myCollabUser: user,
+      collaborators: [user],
+    });
+
+    collabSyncService.broadcast({
+      type: 'request_sync',
+      senderId: user.id,
+      senderName: user.name,
+      senderColor: user.color,
+      roomId,
+      timestamp: Date.now(),
+    });
+  },
+
+  leaveCollaboration: () => {
+    collabSyncService.leaveRoom();
+    set({
+      isCollaborating: false,
+      collabRoomId: null,
+      myCollabUser: null,
+      collaborators: [],
+    });
+  },
+
+  updateMyCursor: (x, y, activeComponentId = null) => {
+    const state = get();
+    if (!state.isCollaborating || !state.myCollabUser || !state.collabRoomId) return;
+
+    collabSyncService.broadcast({
+      type: 'cursor_move',
+      senderId: state.myCollabUser.id,
+      senderName: state.myCollabUser.name,
+      senderColor: state.myCollabUser.color,
+      roomId: state.collabRoomId,
+      payload: { x, y, activeComponentId },
+      timestamp: Date.now(),
+    });
+  },
 
   addComponent: (defId, x, y) => {
     const state = get();
@@ -163,6 +303,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       saveStatus: 'unsaved',
     });
 
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'component_add',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { component: newComp },
+        timestamp: Date.now(),
+      });
+    }
+
     return instanceId;
   },
 
@@ -177,6 +329,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       ),
       saveStatus: 'unsaved',
     }));
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'component_move',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { instanceId, x: snapX, y: snapY },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   rotateComponent: (instanceId) => {
@@ -187,15 +351,40 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       ),
       saveStatus: 'unsaved',
     }));
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'component_rotate',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { instanceId },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   updateComponentLabel: (instanceId, label) => {
-    set((state) => ({
-      components: state.components.map((c) =>
+    const state = get();
+    set((s) => ({
+      components: s.components.map((c) =>
         c.instanceId === instanceId ? { ...c, label } : c
       ),
       saveStatus: 'unsaved',
     }));
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'component_label',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { instanceId, label },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   removeComponent: (instanceId) => {
@@ -216,6 +405,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       historyIndex: newHistory.length - 1,
       saveStatus: 'unsaved',
     });
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'component_delete',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { instanceId },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   // 1. Start wire from component pin
@@ -290,6 +491,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       historyIndex: newHistory.length - 1,
       saveStatus: 'unsaved',
     });
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'wire_add',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { wire: newWire },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   // 5. Complete wire as a T-Junction on another wire
@@ -323,6 +536,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       historyIndex: newHistory.length - 1,
       saveStatus: 'unsaved',
     });
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'wire_add',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { wire: newWire },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   cancelWire: () => {
@@ -337,6 +562,18 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       selectedWireId: state.selectedWireId === wireId ? null : state.selectedWireId,
       saveStatus: 'unsaved',
     });
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'wire_delete',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { wireId },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   undo: () => {
@@ -368,6 +605,7 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
   },
 
   clearCanvas: () => {
+    const state = get();
     set({
       components: [],
       wires: [],
@@ -375,6 +613,17 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       selectedWireId: null,
       saveStatus: 'unsaved',
     });
+
+    if (state.isCollaborating && state.collabRole === 'editor' && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.broadcast({
+        type: 'canvas_clear',
+        senderId: state.myCollabUser.id,
+        senderName: state.myCollabUser.name,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        timestamp: Date.now(),
+      });
+    }
   },
 
   saveProject: async () => {
@@ -435,3 +684,197 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
     });
   },
 }));
+
+// Setup Global Collab Message Subscriber
+collabSyncService.onMessage((msg) => {
+  const store = useCircuitStore.getState();
+  if (!store.isCollaborating || msg.roomId !== store.collabRoomId) return;
+
+  switch (msg.type) {
+    case 'presence_join': {
+      const newUser = msg.payload?.user;
+      if (!newUser || newUser.id === store.myCollabUser?.id) return;
+      const currentList = store.collaborators.filter((c) => c.id !== newUser.id);
+      useCircuitStore.setState({ collaborators: [...currentList, newUser] });
+
+      // If we have content and are host/editor, broadcast full state to help newcomer sync
+      if (store.components.length > 0 || store.wires.length > 0) {
+        collabSyncService.broadcast({
+          type: 'full_sync',
+          senderId: store.myCollabUser?.id || 'host',
+          senderName: store.myCollabUser?.name || 'Host',
+          senderColor: store.myCollabUser?.color || '#38BDF8',
+          roomId: store.collabRoomId,
+          payload: {
+            components: store.components,
+            wires: store.wires,
+            title: store.title,
+          },
+          timestamp: Date.now(),
+        });
+      }
+      break;
+    }
+
+    case 'presence_heartbeat': {
+      const user = msg.payload?.user;
+      if (!user || user.id === store.myCollabUser?.id) return;
+      const exists = store.collaborators.some((c) => c.id === user.id);
+      if (exists) {
+        useCircuitStore.setState((s) => ({
+          collaborators: s.collaborators.map((c) =>
+            c.id === user.id ? { ...c, lastActive: Date.now(), name: user.name, color: user.color } : c
+          ),
+        }));
+      } else {
+        useCircuitStore.setState((s) => ({
+          collaborators: [...s.collaborators, user],
+        }));
+      }
+      break;
+    }
+
+    case 'presence_leave': {
+      useCircuitStore.setState((s) => ({
+        collaborators: s.collaborators.filter((c) => c.id !== msg.senderId),
+      }));
+      break;
+    }
+
+    case 'cursor_move': {
+      const { x, y, activeComponentId } = msg.payload || {};
+      useCircuitStore.setState((s) => ({
+        collaborators: s.collaborators.map((c) =>
+          c.id === msg.senderId
+            ? { ...c, cursor: { x, y }, activeComponentId, lastActive: Date.now() }
+            : c
+        ),
+      }));
+      break;
+    }
+
+    case 'component_add': {
+      const comp = msg.payload?.component;
+      if (comp && !store.components.some((c) => c.instanceId === comp.instanceId)) {
+        useCircuitStore.setState((s) => ({
+          components: [...s.components, comp],
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'component_move': {
+      const { instanceId, x, y } = msg.payload || {};
+      if (instanceId) {
+        useCircuitStore.setState((s) => ({
+          components: s.components.map((c) => (c.instanceId === instanceId ? { ...c, x, y } : c)),
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'component_rotate': {
+      const { instanceId } = msg.payload || {};
+      if (instanceId) {
+        useCircuitStore.setState((s) => ({
+          components: s.components.map((c) =>
+            c.instanceId === instanceId ? { ...c, rotation: (c.rotation + 90) % 360 } : c
+          ),
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'component_label': {
+      const { instanceId, label } = msg.payload || {};
+      if (instanceId) {
+        useCircuitStore.setState((s) => ({
+          components: s.components.map((c) => (c.instanceId === instanceId ? { ...c, label } : c)),
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'component_delete': {
+      const { instanceId } = msg.payload || {};
+      if (instanceId) {
+        useCircuitStore.setState((s) => ({
+          components: s.components.filter((c) => c.instanceId !== instanceId),
+          wires: s.wires.filter(
+            (w) => w.fromComponentId !== instanceId && w.toComponentId !== instanceId
+          ),
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'wire_add': {
+      const wire = msg.payload?.wire;
+      if (wire && !store.wires.some((w) => w.id === wire.id)) {
+        useCircuitStore.setState((s) => ({
+          wires: [...s.wires, wire],
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'wire_delete': {
+      const { wireId } = msg.payload || {};
+      if (wireId) {
+        useCircuitStore.setState((s) => ({
+          wires: s.wires.filter((w) => w.id !== wireId),
+          saveStatus: 'unsaved',
+        }));
+      }
+      break;
+    }
+
+    case 'canvas_clear': {
+      useCircuitStore.setState({
+        components: [],
+        wires: [],
+        selectedComponentId: null,
+        selectedWireId: null,
+        saveStatus: 'unsaved',
+      });
+      break;
+    }
+
+    case 'request_sync': {
+      if (store.components.length > 0 || store.wires.length > 0) {
+        collabSyncService.broadcast({
+          type: 'full_sync',
+          senderId: store.myCollabUser?.id || 'host',
+          senderName: store.myCollabUser?.name || 'Host',
+          senderColor: store.myCollabUser?.color || '#38BDF8',
+          roomId: store.collabRoomId,
+          payload: {
+            components: store.components,
+            wires: store.wires,
+            title: store.title,
+          },
+          timestamp: Date.now(),
+        });
+      }
+      break;
+    }
+
+    case 'full_sync': {
+      const { components, wires, title } = msg.payload || {};
+      if (components && Array.isArray(components)) {
+        useCircuitStore.setState({
+          components,
+          wires: wires || [],
+          title: title || store.title,
+        });
+      }
+      break;
+    }
+  }
+});

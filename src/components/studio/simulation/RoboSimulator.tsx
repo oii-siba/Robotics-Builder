@@ -104,16 +104,16 @@ export function RoboSimulator() {
   };
 
   return (
-    <div className="w-full h-full bg-slate-950 text-white p-6 overflow-y-auto custom-scrollbar select-none flex flex-col items-center">
-      <div className="w-full max-w-5xl space-y-6">
+    <div className="w-full h-full bg-slate-950 text-white p-3 sm:p-6 overflow-y-auto custom-scrollbar select-none flex flex-col items-center">
+      <div className="w-full max-w-5xl space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
           <div>
-            <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-100 flex items-center gap-2">
               <Gamepad2 className="w-5 h-5 text-sky-400" />
-              <span>Virtual Robotics Simulation Arena</span>
+              <span>Virtual Simulation Arena</span>
             </h2>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
+            <p className="text-[11px] sm:text-xs text-slate-400 font-mono mt-0.5">
               Live hardware simulation & kinematics verification for &ldquo;{title}&rdquo;
             </p>
           </div>
@@ -136,24 +136,24 @@ export function RoboSimulator() {
               className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Arena</span>
+              <span>Reset</span>
             </button>
           </div>
         </div>
 
         {/* Simulator Grid & Telemetry Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           {/* 2D Physics Arena Canvas */}
-          <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center shadow-2xl relative overflow-hidden">
-            <div className="w-full flex justify-between items-center text-xs font-mono text-slate-400 pb-3 border-b border-slate-800">
-              <span className="flex items-center gap-1.5 text-sky-400 font-bold">
-                <Radar className="w-4 h-4" /> 500mm x 400mm Test Environment
+          <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-col items-center shadow-2xl relative overflow-hidden">
+            <div className="w-full flex justify-between items-center text-xs font-mono text-slate-400 pb-2 sm:pb-3 border-b border-slate-800">
+              <span className="flex items-center gap-1.5 text-sky-400 font-bold text-[11px] sm:text-xs">
+                <Radar className="w-4 h-4" /> 500mm x 400mm Arena
               </span>
-              <span>Use WASD / Arrow Keys or On-Screen D-Pad</span>
+              <span className="text-[10px] sm:text-xs text-slate-500">WASD / Touch D-Pad</span>
             </div>
 
             {/* Arena SVG Floor */}
-            <div className="w-full aspect-[5/4] max-w-[500px] bg-slate-950 rounded-xl border border-slate-800 my-4 relative overflow-hidden shadow-inner">
+            <div className="w-full aspect-[5/4] max-w-[500px] bg-slate-950 rounded-xl border border-slate-800 my-3 sm:my-4 relative overflow-hidden shadow-inner">
               {/* Floor Grid lines */}
               <svg className="w-full h-full absolute inset-0" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -215,34 +215,70 @@ export function RoboSimulator() {
               </svg>
             </div>
 
-            {/* Virtual D-Pad */}
-            <div className="flex flex-col items-center gap-1 pb-2">
+            {/* Virtual D-Pad with Mouse & Touch Hold Event Handlers */}
+            <div className="flex flex-col items-center gap-1 pb-1">
               <button
                 onMouseDown={() => setSpeed({ left: 80, right: 80 })}
                 onMouseUp={() => setSpeed({ left: 0, right: 0 })}
-                className="w-10 h-10 bg-slate-800 hover:bg-sky-500 rounded-lg flex items-center justify-center text-white transition-all active:scale-90"
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  setSpeed({ left: 80, right: 80 });
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  setSpeed({ left: 0, right: 0 });
+                }}
+                className="w-11 h-11 bg-slate-800 hover:bg-sky-500 rounded-xl flex items-center justify-center text-white transition-all active:scale-90 active:bg-sky-500 shadow-md touch-none"
+                title="Drive Forward"
               >
                 <ArrowUp className="w-5 h-5" />
               </button>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 <button
                   onMouseDown={() => setSpeed({ left: -40, right: 60 })}
                   onMouseUp={() => setSpeed({ left: 0, right: 0 })}
-                  className="w-10 h-10 bg-slate-800 hover:bg-sky-500 rounded-lg flex items-center justify-center text-white transition-all active:scale-90"
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    setSpeed({ left: -40, right: 60 });
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    setSpeed({ left: 0, right: 0 });
+                  }}
+                  className="w-11 h-11 bg-slate-800 hover:bg-sky-500 rounded-xl flex items-center justify-center text-white transition-all active:scale-90 active:bg-sky-500 shadow-md touch-none"
+                  title="Turn Left"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <button
                   onMouseDown={() => setSpeed({ left: -60, right: -60 })}
                   onMouseUp={() => setSpeed({ left: 0, right: 0 })}
-                  className="w-10 h-10 bg-slate-800 hover:bg-sky-500 rounded-lg flex items-center justify-center text-white transition-all active:scale-90"
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    setSpeed({ left: -60, right: -60 });
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    setSpeed({ left: 0, right: 0 });
+                  }}
+                  className="w-11 h-11 bg-slate-800 hover:bg-sky-500 rounded-xl flex items-center justify-center text-white transition-all active:scale-90 active:bg-sky-500 shadow-md touch-none"
+                  title="Drive Backward"
                 >
                   <ArrowDown className="w-5 h-5" />
                 </button>
                 <button
                   onMouseDown={() => setSpeed({ left: 60, right: -40 })}
                   onMouseUp={() => setSpeed({ left: 0, right: 0 })}
-                  className="w-10 h-10 bg-slate-800 hover:bg-sky-500 rounded-lg flex items-center justify-center text-white transition-all active:scale-90"
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    setSpeed({ left: 60, right: -40 });
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    setSpeed({ left: 0, right: 0 });
+                  }}
+                  className="w-11 h-11 bg-slate-800 hover:bg-sky-500 rounded-xl flex items-center justify-center text-white transition-all active:scale-90 active:bg-sky-500 shadow-md touch-none"
+                  title="Turn Right"
                 >
                   <ArrowRight className="w-5 h-5" />
                 </button>

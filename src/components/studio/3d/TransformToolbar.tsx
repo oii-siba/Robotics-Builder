@@ -44,55 +44,55 @@ export function TransformToolbar() {
   ];
 
   return (
-    <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-2xl text-white text-xs">
+    <div className="absolute top-3 left-3 right-3 sm:right-auto z-20 flex items-center gap-1.5 sm:gap-2 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-800 shadow-2xl text-white text-xs overflow-x-auto max-w-[calc(100vw-24px)] custom-scrollbar">
       {/* Transform Mode Group */}
-      <div className="flex items-center bg-slate-950/70 rounded-lg p-0.5 border border-slate-800/80">
+      <div className="flex items-center bg-slate-950/70 rounded-lg p-0.5 border border-slate-800/80 flex-shrink-0">
         <button
           title="Move / Translate (W)"
           onClick={() => setTransformMode('translate')}
-          className={`p-2 rounded-md transition-all flex items-center gap-1.5 font-medium ${
+          className={`px-2 py-1.5 sm:px-2.5 rounded-md transition-all flex items-center gap-1 font-medium ${
             transformMode === 'translate'
               ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Move className="w-3.5 h-3.5" />
-          <span>Move</span>
+          <span className="text-[11px] hidden xs:inline">Move</span>
         </button>
 
         <button
           title="Rotate (E)"
           onClick={() => setTransformMode('rotate')}
-          className={`p-2 rounded-md transition-all flex items-center gap-1.5 font-medium ${
+          className={`px-2 py-1.5 sm:px-2.5 rounded-md transition-all flex items-center gap-1 font-medium ${
             transformMode === 'rotate'
               ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <RotateCw className="w-3.5 h-3.5" />
-          <span>Rotate</span>
+          <span className="text-[11px] hidden xs:inline">Rotate</span>
         </button>
 
         <button
           title="Scale (R)"
           onClick={() => setTransformMode('scale')}
-          className={`p-2 rounded-md transition-all flex items-center gap-1.5 font-medium ${
+          className={`px-2 py-1.5 sm:px-2.5 rounded-md transition-all flex items-center gap-1 font-medium ${
             transformMode === 'scale'
               ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           }`}
         >
           <Maximize2 className="w-3.5 h-3.5" />
-          <span>Scale</span>
+          <span className="text-[11px] hidden xs:inline">Scale</span>
         </button>
       </div>
 
-      <div className="h-5 w-px bg-slate-800 mx-0.5" />
+      <div className="h-5 w-px bg-slate-800 mx-0.5 flex-shrink-0" />
 
       {/* Grid Snapping */}
-      <div className="flex items-center bg-slate-950/70 rounded-lg p-0.5 border border-slate-800/80">
-        <span className="text-slate-400 px-2 flex items-center gap-1 font-mono">
-          <Grid3X3 className="w-3.5 h-3.5 text-sky-400" /> Snap:
+      <div className="flex items-center bg-slate-950/70 rounded-lg p-0.5 border border-slate-800/80 flex-shrink-0">
+        <span className="text-slate-400 px-1.5 sm:px-2 flex items-center gap-1 font-mono text-[11px]">
+          <Grid3X3 className="w-3.5 h-3.5 text-sky-400" /> <span className="hidden sm:inline">Snap:</span>
         </span>
         {[
           { label: 'Off', val: 0 },
@@ -102,7 +102,7 @@ export function TransformToolbar() {
           <button
             key={item.label}
             onClick={() => setGridSnap(item.val)}
-            className={`px-2 py-1.5 rounded-md transition-all font-mono text-[11px] ${
+            className={`px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-md transition-all font-mono text-[11px] ${
               gridSnap === item.val
                 ? 'bg-sky-600 text-white font-bold'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
@@ -117,23 +117,23 @@ export function TransformToolbar() {
       <button
         title="Toggle Wireframe Shader"
         onClick={toggleWireframe}
-        className={`p-2 rounded-lg border transition-all flex items-center gap-1.5 font-medium ${
+        className={`px-2 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 font-medium flex-shrink-0 text-xs ${
           isWireframe
             ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
             : 'bg-slate-950/70 text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800/60'
         }`}
       >
         <Layers className="w-3.5 h-3.5" />
-        <span>{isWireframe ? 'Wireframe ON' : 'Solid'}</span>
+        <span className="hidden xs:inline">{isWireframe ? 'Wire' : 'Solid'}</span>
       </button>
 
       {/* Part Actions (Active when a part is selected) */}
       {selectedPart && (
         <>
-          <div className="h-5 w-px bg-slate-800 mx-0.5" />
+          <div className="h-5 w-px bg-slate-800 mx-0.5 flex-shrink-0" />
 
           {/* Color Palette */}
-          <div className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-lg border border-slate-800/80">
+          <div className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-lg border border-slate-800/80 flex-shrink-0">
             <Palette className="w-3.5 h-3.5 text-slate-400 ml-1" />
             <div className="flex items-center gap-1 px-1">
               {colors.map((c) => (
@@ -149,23 +149,23 @@ export function TransformToolbar() {
             </div>
           </div>
 
-          <div className="flex items-center bg-slate-950/70 rounded-lg p-0.5 border border-slate-800/80">
+          <div className="flex items-center bg-slate-950/70 rounded-lg p-0.5 border border-slate-800/80 flex-shrink-0">
             <button
               title="Duplicate Part"
               onClick={() => duplicatePart(selectedPart.instanceId)}
-              className="p-2 text-slate-300 hover:text-sky-400 hover:bg-slate-800/60 rounded-md transition-all flex items-center gap-1"
+              className="px-2 py-1.5 text-slate-300 hover:text-sky-400 hover:bg-slate-800/60 rounded-md transition-all flex items-center gap-1 text-xs"
             >
               <Copy className="w-3.5 h-3.5" />
-              <span>Clone</span>
+              <span className="hidden sm:inline">Clone</span>
             </button>
 
             <button
               title="Delete Part"
               onClick={() => removePart(selectedPart.instanceId)}
-              className="p-2 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all flex items-center gap-1"
+              className="px-2 py-1.5 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-all flex items-center gap-1 text-xs"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Delete</span>
+              <span className="hidden sm:inline">Delete</span>
             </button>
           </div>
         </>

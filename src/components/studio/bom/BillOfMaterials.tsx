@@ -82,23 +82,23 @@ export function BillOfMaterials() {
   };
 
   return (
-    <div className="w-full h-full bg-slate-950 text-white p-6 overflow-y-auto custom-scrollbar select-none">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full h-full bg-slate-950 text-white p-3 sm:p-6 overflow-y-auto custom-scrollbar select-none">
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         {/* Header & Export */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
           <div>
-            <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-100 flex items-center gap-2">
               <Package className="w-5 h-5 text-sky-400" />
-              <span>Bill of Materials (BOM) & Specs</span>
+              <span>Bill of Materials (BOM)</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1 font-mono">
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-mono">
               Auto-generated component breakdown for &ldquo;{title}&rdquo;
             </p>
           </div>
 
           <button
             onClick={handleExportCSV}
-            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-sky-600/20 active:scale-95 self-start md:self-auto"
+            className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-sky-600/20 active:scale-95 self-start sm:self-auto"
           >
             <Download className="w-4 h-4" />
             <span>Export CSV</span>
@@ -106,7 +106,7 @@ export function BillOfMaterials() {
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <DollarSign className="w-6 h-6" />

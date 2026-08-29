@@ -51,43 +51,44 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
   ];
 
   return (
-    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-30 select-none shadow-md">
+    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2.5 sm:px-4 z-30 select-none shadow-md">
       {/* Brand & Title */}
-      <div className="flex items-center gap-3">
-        <Link href="/" className="flex items-center gap-2.5 group">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
           <img
             src="/logo.png"
             alt="Robotics Builder Logo"
-            className="w-9 h-9 rounded-xl object-contain bg-white/5 border border-sky-500/30 p-0.5 shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain bg-white/5 border border-sky-500/30 p-0.5 shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform"
           />
-          <div className="flex flex-col">
-            <span className="font-black text-sm tracking-tight text-white leading-none font-sans">
+          <div className="flex flex-col hidden xs:flex">
+            <span className="font-black text-xs sm:text-sm tracking-tight text-white leading-none font-sans">
               ROBOTICS <span className="text-sky-400">BUILDER</span>
             </span>
-            <span className="text-[8.5px] font-mono text-emerald-400 font-semibold tracking-wider">
+            <span className="text-[7.5px] sm:text-[8.5px] font-mono text-emerald-400 font-semibold tracking-wider">
               DESIGN • BUILD • INNOVATE
             </span>
           </div>
         </Link>
 
-        <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+        <div className="h-5 w-px bg-slate-800 hidden sm:block flex-shrink-0" />
 
         {/* Project Title */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 min-w-0">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-transparent hover:bg-slate-800/80 focus:bg-slate-950 border border-transparent focus:border-slate-700 rounded-md px-2 py-1 text-xs font-semibold text-slate-200 focus:outline-none max-w-[180px] sm:max-w-[240px] transition-colors truncate"
+            className="bg-transparent hover:bg-slate-800/80 focus:bg-slate-950 border border-transparent focus:border-slate-700 rounded-md px-1.5 sm:px-2 py-1 text-xs font-semibold text-slate-200 focus:outline-none w-24 xs:w-32 sm:w-44 md:w-56 transition-colors truncate"
           />
 
           {/* Preset Templates Dropdown */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowPresetsMenu(!showPresetsMenu)}
-              className="text-[11px] font-mono text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-2 py-1 rounded-md flex items-center gap-1 transition-colors"
+              className="text-[11px] font-mono text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-1.5 sm:px-2 py-1 rounded-md flex items-center gap-1 transition-colors"
+              title="Load Preset Robot"
             >
-              <Sparkles className="w-3 h-3" />
+              <Sparkles className="w-3 h-3 text-amber-400" />
               <span className="hidden md:inline">Templates</span>
               <ChevronDown className="w-3 h-3" />
             </button>
@@ -118,7 +119,7 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
         </div>
       </div>
 
-      {/* Main Mode Navigation Tabs */}
+      {/* Main Mode Navigation Tabs (Desktop only) */}
       <nav className="hidden lg:flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -141,11 +142,11 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
       </nav>
 
       {/* Action Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
         {/* Supabase Connection Status Pill */}
         <button
           onClick={onOpenSupabase}
-          className="text-xs font-mono px-2.5 py-1 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950/60 text-slate-300 flex items-center gap-1.5 transition-colors"
+          className="text-xs font-mono px-2 sm:px-2.5 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-950/60 text-slate-300 flex items-center gap-1.5 transition-colors"
           title="Supabase Database Settings"
         >
           <Database className="w-3.5 h-3.5 text-emerald-400" />
@@ -162,20 +163,21 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
             }
             saveProject();
           }}
-          className={`text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+          className={`text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
             saveStatus === 'saving'
               ? 'bg-slate-800 text-slate-400 animate-pulse'
               : saveStatus === 'unsaved'
               ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-md shadow-amber-600/20'
               : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
           }`}
+          title="Save Project"
         >
           {saveStatus === 'saved' ? (
             <Check className="w-3.5 h-3.5 text-emerald-400" />
           ) : (
             <Save className="w-3.5 h-3.5" />
           )}
-          <span className="hidden sm:inline">
+          <span className="hidden md:inline">
             {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'unsaved' ? 'Save' : 'Saved'}
           </span>
         </button>
@@ -190,10 +192,11 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
             }
             onOpenShare();
           }}
-          className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/25 active:scale-95"
+          className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/25 active:scale-95"
+          title="Share Project Online"
         >
           <Share2 className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Share Online</span>
+          <span className="hidden sm:inline">Share</span>
         </button>
 
         {/* User Account / Profile Menu */}

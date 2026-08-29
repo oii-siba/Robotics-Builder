@@ -211,60 +211,62 @@ export default function SharePage({ params }: SharePageProps) {
   return (
     <div className="w-screen h-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans select-none">
       {/* Top Banner */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 z-20 shadow-md">
-        <div className="flex items-center gap-3">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2.5 sm:px-6 z-20 shadow-md">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             href="/studio"
-            className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 text-xs font-semibold"
+            className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 text-xs font-semibold flex-shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Studio</span>
+            <span className="hidden sm:inline">Studio</span>
           </Link>
 
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="h-4 w-px bg-slate-800 flex-shrink-0" />
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <img
               src="/logo.png"
               alt="Robotics Builder Logo"
-              className="w-8 h-8 rounded-xl object-contain bg-white/5 border border-sky-500/30 p-0.5 shadow-md shadow-sky-500/20"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-contain bg-white/5 border border-sky-500/30 p-0.5 shadow-md shadow-sky-500/20 flex-shrink-0"
             />
-            <div>
-              <h1 className="text-xs sm:text-sm font-bold text-white leading-none">
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold text-white leading-none truncate max-w-[140px] sm:max-w-[240px]">
                 {activeProject.title}
               </h1>
-              <span className="text-[10px] text-emerald-400 font-mono">
-                ● Robotics Builder Showcase
+              <span className="text-[9px] sm:text-[10px] text-emerald-400 font-mono hidden xs:inline">
+                ● Robotics Showcase
               </span>
             </div>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <button
             onClick={handleExportJSON}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
             title="Download JSON File"
           >
             <FileCode2 className="w-3.5 h-3.5 text-sky-400" />
-            <span className="hidden sm:inline">Download JSON</span>
+            <span className="hidden sm:inline">JSON</span>
           </button>
 
           <button
             onClick={handleCopyShareUrl}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+            title="Share Link"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copiedLink ? 'Copied' : 'Share Link'}</span>
+            <span className="hidden sm:inline">{copiedLink ? 'Copied' : 'Share'}</span>
           </button>
 
           <button
             onClick={handleCloneToStudio}
-            className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/25 active:scale-95"
+            className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-semibold text-xs px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/25 active:scale-95"
+            title="Fork & Edit in Studio"
           >
             <Edit3 className="w-3.5 h-3.5" />
-            <span>Fork & Edit in Studio</span>
+            <span>Fork & Edit</span>
           </button>
         </div>
       </header>
@@ -272,33 +274,42 @@ export default function SharePage({ params }: SharePageProps) {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
         {/* Mode Selector Tabs */}
-        <div className="h-10 bg-slate-900/80 border-b border-slate-800 px-4 flex items-center gap-2 z-10 text-xs">
+        <div className="h-10 bg-slate-900/80 border-b border-slate-800 px-2 sm:px-4 flex items-center gap-1.5 sm:gap-2 z-10 text-xs overflow-x-auto custom-scrollbar">
           <button
             onClick={() => setActiveTab('3d')}
-            className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all flex-shrink-0 ${
               activeTab === '3d' ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Box className="w-3.5 h-3.5" />
-            <span>3D Assembly ({(activeProject.parts || []).length})</span>
+            <span>3D Assembly</span>
           </button>
           <button
             onClick={() => setActiveTab('circuit')}
-            className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all flex-shrink-0 ${
               activeTab === 'circuit' ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
-            <span>Circuit Schematic ({(activeProject.wires || []).length} Wires)</span>
+            <span>Circuit</span>
           </button>
           <button
             onClick={() => setActiveTab('code')}
-            className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all flex-shrink-0 ${
               activeTab === 'code' ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Code2 className="w-3.5 h-3.5" />
-            <span>Firmware Code</span>
+            <span>Firmware</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('bom')}
+            className={`px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-all flex-shrink-0 ${
+              activeTab === 'bom' ? 'bg-sky-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Package className="w-3.5 h-3.5" />
+            <span>BOM</span>
           </button>
         </div>
 

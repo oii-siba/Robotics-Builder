@@ -21,7 +21,12 @@ import { ROBOT_PARTS_CATALOG } from '@/lib/constants/robot-parts';
 import { PartCategory, RobotPartDefinition } from '@/lib/types/robot';
 import { useRobotStore } from '@/lib/store/robot-store';
 
-export function PartsCatalog() {
+interface PartsCatalogProps {
+  isMobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function PartsCatalog({ isMobileOpen, onClose }: PartsCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<PartCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'catalog' | 'hierarchy'>('catalog');
@@ -72,9 +77,9 @@ export function PartsCatalog() {
   });
 
   return (
-    <aside className="w-80 sm:w-96 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-10 select-none shadow-2xl">
+    <aside className="w-full sm:w-80 md:w-96 h-full bg-slate-900 border-r border-slate-800 flex flex-col z-20 select-none shadow-2xl">
       {/* Catalog / Hierarchy Tabs */}
-      <div className="flex border-b border-slate-800 bg-slate-950/60 p-1.5 gap-1">
+      <div className="flex items-center border-b border-slate-800 bg-slate-950/60 p-1.5 gap-1">
         <button
           onClick={() => setActiveTab('catalog')}
           className={`flex-1 py-2 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all ${
@@ -84,7 +89,7 @@ export function PartsCatalog() {
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Parts Library ({ROBOT_PARTS_CATALOG.length})</span>
+          <span>Library ({ROBOT_PARTS_CATALOG.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('hierarchy')}
@@ -97,6 +102,16 @@ export function PartsCatalog() {
           <Layers className="w-3.5 h-3.5" />
           <span>Scene ({parts.length})</span>
         </button>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors ml-1 lg:hidden"
+            title="Close Library"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {activeTab === 'catalog' ? (

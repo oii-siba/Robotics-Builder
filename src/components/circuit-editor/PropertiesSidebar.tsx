@@ -15,7 +15,11 @@ import {
 import { useCircuitStore } from '@/lib/circuit-engine/circuit-store';
 import { CIRCUIT_COMPONENTS_LIBRARY } from '@/lib/circuit-engine/components-library';
 
-export function PropertiesSidebar() {
+interface PropertiesSidebarProps {
+  onClose?: () => void;
+}
+
+export function PropertiesSidebar({ onClose }: PropertiesSidebarProps) {
   const selectedComponentId = useCircuitStore((state) => state.selectedComponentId);
   const setSelectedComponent = useCircuitStore((state) => state.setSelectedComponent);
   const components = useCircuitStore((state) => state.components);
@@ -38,7 +42,7 @@ export function PropertiesSidebar() {
   );
 
   return (
-    <aside className="w-72 bg-slate-900 border-l border-slate-800 flex flex-col z-20 select-none shadow-2xl text-white">
+    <aside className="w-full sm:w-72 bg-slate-900 border-l border-slate-800 flex flex-col z-30 select-none shadow-2xl text-white h-full">
       {/* Header */}
       <div className="p-3 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -51,8 +55,12 @@ export function PropertiesSidebar() {
           </div>
         </div>
         <button
-          onClick={() => setSelectedComponent(null)}
+          onClick={() => {
+            setSelectedComponent(null);
+            if (onClose) onClose();
+          }}
           className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          title="Close Inspector"
         >
           <X className="w-3.5 h-3.5" />
         </button>

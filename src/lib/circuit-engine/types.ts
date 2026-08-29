@@ -121,3 +121,42 @@ export interface CircuitProjectData {
   createdAt: string;
   updatedAt: string;
 }
+
+export type CollabRole = 'editor' | 'viewer';
+
+export interface Collaborator {
+  id: string;
+  name: string;
+  avatar?: string;
+  color: string;
+  role: CollabRole;
+  isHost: boolean;
+  joinedAt: number;
+  lastActive: number;
+  cursor?: { x: number; y: number };
+  activeComponentId?: string | null;
+}
+
+export interface CollabMessage {
+  type: 
+    | 'presence_join' 
+    | 'presence_leave' 
+    | 'presence_heartbeat' 
+    | 'cursor_move' 
+    | 'component_add' 
+    | 'component_move' 
+    | 'component_rotate' 
+    | 'component_label' 
+    | 'component_delete' 
+    | 'wire_add' 
+    | 'wire_delete' 
+    | 'canvas_clear' 
+    | 'request_sync' 
+    | 'full_sync';
+  senderId: string;
+  senderName: string;
+  senderColor: string;
+  roomId: string;
+  payload?: any;
+  timestamp: number;
+}

@@ -17,12 +17,15 @@ import {
   ChevronDown,
   Copy,
   Image as ImageIcon,
-  FolderOpen
+  FolderOpen,
+  Users,
+  Radio,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCircuitStore } from '@/lib/circuit-engine/circuit-store';
 import { PRESET_CIRCUITS } from '@/lib/circuit-engine/circuit-presets';
 import { useAuthStore } from '@/lib/auth/auth-store';
+import { CircuitCollabModal } from './CircuitCollabModal';
 
 export function EditorToolbar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,9 +51,13 @@ export function EditorToolbar() {
   const wires = useCircuitStore((state) => state.wires);
   const loadProjectData = useCircuitStore((state) => state.loadProjectData);
 
+  const isCollaborating = useCircuitStore((state) => state.isCollaborating);
+  const collaborators = useCircuitStore((state) => state.collaborators);
+
   const [copiedLink, setCopiedLink] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isCollabOpen, setIsCollabOpen] = useState(false);
 
   // 1. Export Circuit as JPEG Image
   const handleExportJPEG = () => {
@@ -247,7 +254,7 @@ export function EditorToolbar() {
   ];
 
   return (
-    <header className="h-12 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between z-30 select-none text-xs text-white shadow-md">
+    <header className="h-12 bg-slate-900 border-b border-slate-800 px-2 sm:px-4 flex items-center justify-between z-30 select-none text-xs text-white shadow-md overflow-x-auto custom-scrollbar gap-2">
       {/* Hidden File Input for JSON Upload */}
       <input
         ref={fileInputRef}
@@ -258,25 +265,25 @@ export function EditorToolbar() {
       />
 
       {/* Left Title & Preset Templates */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 font-bold text-sky-400 font-mono">
-          <Zap className="w-4 h-4" />
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1 font-bold text-sky-400 font-mono">
+          <Zap className="w-4 h-4 flex-shrink-0" />
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-transparent border border-transparent hover:border-slate-700 focus:border-sky-500 rounded px-1.5 py-0.5 font-bold text-white max-w-[200px] truncate focus:outline-none"
+            className="bg-transparent border border-transparent hover:border-slate-700 focus:border-sky-500 rounded px-1 py-0.5 font-bold text-white w-24 xs:w-32 sm:w-44 truncate focus:outline-none"
           />
         </div>
 
         {/* Pre-built Robotics Circuit Templates Dropdown */}
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <button
             onClick={() => setShowPresets(!showPresets)}
-            className="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors"
+            className="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Robotics Circuits</span>
+            <span className="hidden xs:inline">Templates</span>
             <ChevronDown className="w-3 h-3" />
           </button>
 
@@ -301,10 +308,10 @@ export function EditorToolbar() {
           )}
         </div>
 
-        <div className="h-4 w-px bg-slate-800" />
+        <div className="h-4 w-px bg-slate-800 flex-shrink-0" />
 
         {/* Undo / Redo */}
-        <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-0.5 bg-slate-950 p-0.5 rounded-lg border border-slate-800 flex-shrink-0">
           <button
             onClick={undo}
             className="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
@@ -322,13 +329,13 @@ export function EditorToolbar() {
         </div>
 
         {/* Wire Colors */}
-        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 flex-shrink-0">
           {wireColors.map((item) => (
             <button
               key={item.color}
               onClick={() => setActiveWireColor(item.color)}
               title={item.label}
-              className={`w-4 h-4 rounded-full border border-slate-700 transition-transform ${
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-slate-700 transition-transform ${
                 activeWireColor === item.color ? 'ring-2 ring-white scale-110' : 'hover:scale-110'
               }`}
               style={{ backgroundColor: item.color }}
@@ -337,10 +344,10 @@ export function EditorToolbar() {
         </div>
 
         {/* Grid Controls */}
-        <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-0.5 bg-slate-950 p-0.5 rounded-lg border border-slate-800 flex-shrink-0">
           <button
             onClick={toggleGrid}
-            className={`px-2 py-1 rounded text-[11px] font-mono transition-colors ${
+            className={`px-1.5 py-1 rounded text-[11px] font-mono transition-colors ${
               showGrid ? 'text-sky-400 font-bold bg-slate-800' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -348,35 +355,36 @@ export function EditorToolbar() {
           </button>
           <button
             onClick={toggleSnapToGrid}
-            className={`px-2 py-1 rounded text-[11px] font-mono transition-colors ${
+            className={`px-1.5 py-1 rounded text-[11px] font-mono transition-colors ${
               snapToGrid ? 'text-sky-400 font-bold bg-slate-800' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Snap: {snapToGrid ? 'ON' : 'OFF'}
+            Snap
           </button>
         </div>
       </div>
 
       {/* Right JSON Import/Export, JPEG Export, Save & Share */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
         {/* Import JSON File */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+          className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
           title="Open / Import Circuit JSON File"
         >
           <Upload className="w-3.5 h-3.5" />
-          <span>Import</span>
+          <span className="hidden sm:inline">Import</span>
         </button>
 
         {/* Export Dropdown Menu (JPEG / PNG / JSON) */}
         <div className="relative">
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-700"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border border-slate-700"
+            title="Export Image or JSON"
           >
             <Download className="w-3.5 h-3.5 text-sky-400" />
-            <span>Export Image</span>
+            <span className="hidden sm:inline">Export</span>
             <ChevronDown className="w-3 h-3" />
           </button>
 
@@ -429,10 +437,11 @@ export function EditorToolbar() {
         {selectedComponentId && (
           <button
             onClick={() => rotateComponent(selectedComponentId)}
-            className="bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-sky-400 px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            title="Rotate"
           >
             <RotateCw className="w-3.5 h-3.5" />
-            <span>Rotate (R)</span>
+            <span className="hidden sm:inline">Rotate</span>
           </button>
         )}
 
@@ -440,30 +449,60 @@ export function EditorToolbar() {
         {selectedComponentId && (
           <button
             onClick={() => removeComponent(selectedComponentId)}
-            className="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            className="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+            title="Delete"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         )}
 
+        {/* Realtime Partnership & Co-Design Button */}
+        <button
+          onClick={() => setIsCollabOpen(true)}
+          className={`text-xs px-2.5 sm:px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-md ${
+            isCollaborating
+              ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 shadow-emerald-500/10'
+              : 'bg-gradient-to-r from-sky-600/30 to-blue-600/30 hover:from-sky-600/40 hover:to-blue-600/40 text-sky-300 border border-sky-500/30'
+          }`}
+          title="Share in Partnership & Co-Design Live"
+        >
+          <Users className="w-3.5 h-3.5" />
+          {isCollaborating ? (
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Co-Design ({collaborators.length})</span>
+            </span>
+          ) : (
+            <span>Partnership</span>
+          )}
+        </button>
+
         {/* Save to Supabase */}
         <button
           onClick={handleSaveCircuit}
-          className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+          className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+          title="Save Circuit"
         >
           {saveStatus === 'saved' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Save className="w-3.5 h-3.5" />}
-          <span>{saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Save'}</span>
+          <span className="hidden md:inline">{saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : 'Save'}</span>
         </button>
 
         {/* Share Circuit Online */}
         <button
           onClick={handleShare}
-          className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/25 active:scale-95"
+          className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-lg shadow-sky-500/25 active:scale-95"
+          title="Share Circuit Online"
         >
           {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Share2 className="w-3.5 h-3.5" />}
-          <span>{copiedLink ? 'Link Copied!' : 'Share Circuit'}</span>
+          <span className="hidden sm:inline">{copiedLink ? 'Copied' : 'Share'}</span>
         </button>
       </div>
+
+      {/* Circuit Partnership & Co-Design Modal */}
+      <CircuitCollabModal
+        isOpen={isCollabOpen}
+        onClose={() => setIsCollabOpen(false)}
+      />
     </header>
   );
 }
