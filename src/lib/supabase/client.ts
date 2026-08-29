@@ -22,9 +22,16 @@ const getSupabaseCredentials = () => {
     finalUrl = rawUrl.replace(/\/+$/, '');
   }
 
-  // Validate Supabase JWT anon key (must be valid JWT without placeholder)
+  // Validate Supabase JWT anon key (must be a genuine 3-part JWT and not contain placeholder)
   let finalKey = '';
-  if (rawKey && !rawKey.includes('placeholder') && rawKey.startsWith('eyJ')) {
+  if (
+    rawKey &&
+    !rawKey.includes('placeholder') &&
+    !rawKey.includes('local') &&
+    rawKey.startsWith('eyJ') &&
+    rawKey.split('.').length === 3 &&
+    rawKey.split('.')[2].length > 10
+  ) {
     finalKey = rawKey;
   }
 
@@ -38,6 +45,7 @@ let lastUsedKey = '';
 export const getSupabaseClient = (): SupabaseClient | null => {
   const { url, key } = getSupabaseCredentials();
   
+  // If no valid URL or real valid JWT key exists, return null for graceful local handling
   if (!url || !key) {
     return null;
   }
