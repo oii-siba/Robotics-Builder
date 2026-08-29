@@ -93,6 +93,9 @@ export const metadata: Metadata = {
     shortcut: "/logo.png",
     apple: "/logo.png",
   },
+  verification: {
+    google: "7k9X_xbFeKPnKrnkgpyNrTZIR07NN0IsCNgOKBU7kb4",
+  },
   category: "technology",
 };
 
