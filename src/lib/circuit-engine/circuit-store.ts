@@ -85,6 +85,7 @@ interface CircuitState {
 
   addComponent: (defId: string, x: number, y: number) => string;
   updateComponentPosition: (instanceId: string, x: number, y: number) => void;
+  updateComponentScale: (instanceId: string, scale: number) => void;
   rotateComponent: (instanceId: string) => void;
   updateComponentLabel: (instanceId: string, label: string) => void;
   removeComponent: (instanceId: string) => void;
@@ -374,6 +375,16 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
         timestamp: Date.now(),
       });
     }
+  },
+
+  updateComponentScale: (instanceId, scale) => {
+    const clampedScale = Math.max(0.4, Math.min(3.5, Math.round(scale * 100) / 100));
+    set((s) => ({
+      components: s.components.map((c) =>
+        c.instanceId === instanceId ? { ...c, scale: clampedScale } : c
+      ),
+      saveStatus: 'unsaved',
+    }));
   },
 
   rotateComponent: (instanceId) => {

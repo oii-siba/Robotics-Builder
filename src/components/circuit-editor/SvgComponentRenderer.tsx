@@ -23,22 +23,28 @@ export function SvgComponentRenderer({
   if (!def) return null;
 
   const { width, height, pins } = def;
+  const scale = component.scale || 1;
+  const scaledWidth = width * scale;
+  const scaledHeight = height * scale;
 
-  // Helper to calculate rotated pin coordinates
+  // Helper to calculate rotated and scaled pin coordinates
   const getPinAbsoluteCoords = (pin: CircuitPinDef) => {
+    const pinX = pin.x * scale;
+    const pinY = pin.y * scale;
+
     if (!component.rotation || component.rotation === 0) {
-      return { x: component.x + pin.x, y: component.y + pin.y };
+      return { x: component.x + pinX, y: component.y + pinY };
     }
 
     const rad = (component.rotation * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
 
-    const cx = width / 2;
-    const cy = height / 2;
+    const cx = scaledWidth / 2;
+    const cy = scaledHeight / 2;
 
-    const dx = pin.x - cx;
-    const dy = pin.y - cy;
+    const dx = pinX - cx;
+    const dy = pinY - cy;
 
     const rx = dx * cos - dy * sin;
     const ry = dx * sin + dy * cos;
@@ -387,7 +393,7 @@ export function SvgComponentRenderer({
 
   return (
     <g
-      transform={`translate(${component.x}, ${component.y}) rotate(${component.rotation || 0}, ${width / 2}, ${height / 2})`}
+      transform={`translate(${component.x}, ${component.y}) rotate(${component.rotation || 0}, ${scaledWidth / 2}, ${scaledHeight / 2}) scale(${scale})`}
       onMouseDown={onMouseDown}
       className="cursor-move select-none"
     >
@@ -398,11 +404,11 @@ export function SvgComponentRenderer({
           y={-4}
           width={width + 8}
           height={height + 8}
-          rx={10}
+          rx={8}
           fill="none"
           stroke="#38BDF8"
-          strokeWidth={2.5}
-          strokeDasharray="5 3"
+          strokeWidth={2}
+          strokeDasharray="4 2"
           className="animate-pulse"
         />
       )}

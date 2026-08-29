@@ -93,6 +93,7 @@ export interface PlacedCircuitComponent {
   value?: string;
   x: number;
   y: number;
+  scale?: number; // 0.5 to 3.0 scale factor (default 1)
   rotation: number; // 0, 90, 180, 270
 }
 

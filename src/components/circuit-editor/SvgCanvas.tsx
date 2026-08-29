@@ -36,6 +36,8 @@ export function SvgCanvas() {
   const gridSize = useCircuitStore((state) => state.gridSize);
 
   const updateComponentPosition = useCircuitStore((state) => state.updateComponentPosition);
+  const updateComponentScale = useCircuitStore((state) => state.updateComponentScale);
+  const rotateComponent = useCircuitStore((state) => state.rotateComponent);
   const addComponent = useCircuitStore((state) => state.addComponent);
   const removeComponent = useCircuitStore((state) => state.removeComponent);
 
@@ -61,9 +63,24 @@ export function SvgCanvas() {
   // Wire quick actions menu position
   const [wireMenuPos, setWireMenuPos] = useState<Point | null>(null);
 
-  // Dragging state
+  // Dragging & Resizing state
   const [draggingCompId, setDraggingCompId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<Point>({ x: 0, y: 0 });
+  const [resizingState, setResizingState] = useState<{
+    compId: string;
+    handle: string;
+    startMouseX: number;
+    startMouseY: number;
+    startScale: number;
+    initialW: number;
+    initialH: number;
+  } | null>(null);
+
+  // Smart Alignment Laser Guidelines (Green lines during component movement)
+  const [activeAlignmentLines, setActiveAlignmentLines] = useState<
+    { type: 'vertical' | 'horizontal'; pos: number; label: string }[]
+  >([]);
+
   const lastCursorBroadcast = useRef<number>(0);
 
   // Panning state
@@ -73,8 +90,7 @@ export function SvgCanvas() {
   // Screen to World converter
   const screenToWorld = useCallback(
     (clientX: number, clientY: number) => {
-      if (!svgRef.current) return { x: 0, y: 0 };
-      const rect = svgRef.current.getBoundingClientRect();
+      const rect = containerRef.current?.getBoundingClientRect() || { left: 0, top: 0 };
       const x = (clientX - rect.left - pan.x) / zoom;
       const y = (clientY - rect.top - pan.y) / zoom;
       return { x, y };
@@ -96,7 +112,7 @@ export function SvgCanvas() {
     addComponent(defId, world.x, world.y);
   };
 
-  // Helper to find exact coordinates of pin or point
+  // Helper to find exact coordinates of pin or point (with scale support)
   const getPinCanvasCoords = useCallback(
     (componentId?: string, pinId?: string, fallbackPoint?: Point): Point => {
       if (fallbackPoint) return fallbackPoint;
@@ -111,17 +127,23 @@ export function SvgCanvas() {
       const pin = def.pins.find((p) => p.id === pinId);
       if (!pin) return { x: comp.x, y: comp.y };
 
+      const scale = comp.scale || 1;
+      const pinX = pin.x * scale;
+      const pinY = pin.y * scale;
+      const compW = def.width * scale;
+      const compH = def.height * scale;
+
       if (!comp.rotation || comp.rotation === 0) {
-        return { x: comp.x + pin.x, y: comp.y + pin.y };
+        return { x: comp.x + pinX, y: comp.y + pinY };
       }
 
       const rad = (comp.rotation * Math.PI) / 180;
       const cos = Math.cos(rad);
       const sin = Math.sin(rad);
-      const cx = def.width / 2;
-      const cy = def.height / 2;
-      const dx = pin.x - cx;
-      const dy = pin.y - cy;
+      const cx = compW / 2;
+      const cy = compH / 2;
+      const dx = pinX - cx;
+      const dy = pinY - cy;
       const rx = dx * cos - dy * sin;
       const ry = dx * sin + dy * cos;
 
@@ -593,14 +615,79 @@ export function SvgCanvas() {
   const handleMouseMove = (e: React.MouseEvent) => {
     const world = screenToWorld(e.clientX, e.clientY);
 
+    if (resizingState) {
+      const dx = world.x - resizingState.startMouseX;
+      const dy = world.y - resizingState.startMouseY;
+      let delta = 0;
+      if (resizingState.handle === 'se') delta = (dx + dy) / 2;
+      else if (resizingState.handle === 'nw') delta = -(dx + dy) / 2;
+      else if (resizingState.handle === 'ne') delta = (dx - dy) / 2;
+      else if (resizingState.handle === 'sw') delta = (-dx + dy) / 2;
+      else if (resizingState.handle === 'e' || resizingState.handle === 'w') delta = resizingState.handle === 'e' ? dx : -dx;
+      else if (resizingState.handle === 's' || resizingState.handle === 'n') delta = resizingState.handle === 's' ? dy : -dy;
+
+      const baseDim = Math.max(resizingState.initialW, resizingState.initialH);
+      const newScale = Math.max(0.4, Math.min(3.5, resizingState.startScale + delta / baseDim));
+      updateComponentScale(resizingState.compId, newScale);
+      return;
+    }
+
     if (isDrawingWire) {
       const snapped = getSnappedWirePoint(world.x, world.y);
       updateMousePos(snapped.x, snapped.y);
     }
 
     if (draggingCompId) {
-      const newX = world.x - dragOffset.x;
-      const newY = world.y - dragOffset.y;
+      let newX = world.x - dragOffset.x;
+      let newY = world.y - dragOffset.y;
+      const comp = components.find((c) => c.instanceId === draggingCompId);
+      const def = comp ? CIRCUIT_COMPONENTS_LIBRARY.find((d) => d.id === comp.defId) : null;
+      const guides: { type: 'vertical' | 'horizontal'; pos: number; label: string }[] = [];
+
+      if (comp && def) {
+        const scale = comp.scale || 1;
+        const curW = def.width * scale;
+        const curH = def.height * scale;
+        const curCenterX = newX + curW / 2;
+        const curCenterY = newY + curH / 2;
+
+        components.forEach((other) => {
+          if (other.instanceId === draggingCompId) return;
+          const otherDef = CIRCUIT_COMPONENTS_LIBRARY.find((d) => d.id === other.defId);
+          if (!otherDef) return;
+          const otherScale = other.scale || 1;
+          const otherW = otherDef.width * otherScale;
+          const otherH = otherDef.height * otherScale;
+          const otherCenterX = other.x + otherW / 2;
+          const otherCenterY = other.y + otherH / 2;
+
+          // Vertical alignment snaps (Center, Left, Right)
+          if (Math.abs(curCenterX - otherCenterX) < 10) {
+            newX = otherCenterX - curW / 2;
+            guides.push({ type: 'vertical', pos: otherCenterX, label: 'Center X' });
+          } else if (Math.abs(newX - other.x) < 10) {
+            newX = other.x;
+            guides.push({ type: 'vertical', pos: other.x, label: 'Left Edge' });
+          } else if (Math.abs(newX + curW - (other.x + otherW)) < 10) {
+            newX = other.x + otherW - curW;
+            guides.push({ type: 'vertical', pos: other.x + otherW, label: 'Right Edge' });
+          }
+
+          // Horizontal alignment snaps (Center, Top, Bottom)
+          if (Math.abs(curCenterY - otherCenterY) < 10) {
+            newY = otherCenterY - curH / 2;
+            guides.push({ type: 'horizontal', pos: otherCenterY, label: 'Center Y' });
+          } else if (Math.abs(newY - other.y) < 10) {
+            newY = other.y;
+            guides.push({ type: 'horizontal', pos: other.y, label: 'Top Edge' });
+          } else if (Math.abs(newY + curH - (other.y + otherH)) < 10) {
+            newY = other.y + otherH - curH;
+            guides.push({ type: 'horizontal', pos: other.y + otherH, label: 'Bottom Edge' });
+          }
+        });
+      }
+
+      setActiveAlignmentLines(guides);
       updateComponentPosition(draggingCompId, newX, newY);
     }
 
@@ -620,6 +707,8 @@ export function SvgCanvas() {
 
   const handleMouseUp = () => {
     setDraggingCompId(null);
+    setResizingState(null);
+    setActiveAlignmentLines([]);
     setIsPanning(false);
   };
 
@@ -948,6 +1037,154 @@ export function SvgCanvas() {
               }}
             />
           ))}
+
+          {/* Smart Auto Alignment Laser Guides (Green Lines on Component Movement/Snap) */}
+          {activeAlignmentLines.map((guide, idx) => (
+            <g key={idx} className="pointer-events-none select-none z-30">
+              {guide.type === 'vertical' ? (
+                <>
+                  <line
+                    x1={guide.pos}
+                    y1="-10000"
+                    x2={guide.pos}
+                    y2="10000"
+                    stroke="#22C55E"
+                    strokeWidth="1.5"
+                    strokeDasharray="6 3"
+                    className="drop-shadow"
+                  />
+                  <g transform={`translate(${guide.pos + 6}, 50)`}>
+                    <rect x="0" y="-8" width="76" height="16" rx="4" fill="#14532D" stroke="#22C55E" strokeWidth="1" />
+                    <text x="38" y="3.5" fill="#86EFAC" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">
+                      {guide.label}
+                    </text>
+                  </g>
+                </>
+              ) : (
+                <>
+                  <line
+                    x1="-10000"
+                    y1={guide.pos}
+                    x2="10000"
+                    y2={guide.pos}
+                    stroke="#22C55E"
+                    strokeWidth="1.5"
+                    strokeDasharray="6 3"
+                    className="drop-shadow"
+                  />
+                  <g transform={`translate(50, ${guide.pos - 10})`}>
+                    <rect x="-38" y="-8" width="76" height="16" rx="4" fill="#14532D" stroke="#22C55E" strokeWidth="1" />
+                    <text x="0" y="3.5" fill="#86EFAC" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">
+                      {guide.label}
+                    </text>
+                  </g>
+                </>
+              )}
+            </g>
+          ))}
+
+          {/* Selected Component Interactive 8-Handle Transform Box + Rotation Handle */}
+          {(() => {
+            const selectedComp = components.find((c) => c.instanceId === selectedComponentId);
+            if (!selectedComp) return null;
+            const def = CIRCUIT_COMPONENTS_LIBRARY.find((d) => d.id === selectedComp.defId);
+            if (!def) return null;
+
+            const scale = selectedComp.scale || 1;
+            const w = def.width * scale;
+            const h = def.height * scale;
+            const cx = w / 2;
+            const cy = h / 2;
+            const handleSize = 8;
+
+            const handles: { id: string; x: number; y: number; cursor: string }[] = [
+              { id: 'nw', x: -4, y: -4, cursor: 'nwse-resize' },
+              { id: 'n', x: cx, y: -4, cursor: 'ns-resize' },
+              { id: 'ne', x: w + 4, y: -4, cursor: 'nesw-resize' },
+              { id: 'e', x: w + 4, y: cy, cursor: 'ew-resize' },
+              { id: 'se', x: w + 4, y: h + 4, cursor: 'nwse-resize' },
+              { id: 's', x: cx, y: h + 4, cursor: 'ns-resize' },
+              { id: 'sw', x: -4, y: h + 4, cursor: 'nesw-resize' },
+              { id: 'w', x: -4, y: cy, cursor: 'ew-resize' },
+            ];
+
+            return (
+              <g
+                transform={`translate(${selectedComp.x}, ${selectedComp.y}) rotate(${selectedComp.rotation || 0}, ${cx}, ${cy})`}
+                className="select-none"
+              >
+                {/* Bounding Selection Outline */}
+                <rect
+                  x={-4}
+                  y={-4}
+                  width={w + 8}
+                  height={h + 8}
+                  rx={6}
+                  fill="none"
+                  stroke="#38BDF8"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                  className="pointer-events-none"
+                />
+
+                {/* Top Rotation Stem & Handle */}
+                <line x1={cx} y1={-4} x2={cx} y2={-24} stroke="#38BDF8" strokeWidth={1.5} className="pointer-events-none" />
+                <g
+                  transform={`translate(${cx}, -24)`}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    rotateComponent(selectedComp.instanceId);
+                  }}
+                  className="cursor-pointer group"
+                >
+                  <circle cx="0" cy="0" r="7" fill="#FFFFFF" stroke="#0284C7" strokeWidth="1.5" className="drop-shadow group-hover:scale-125 transition-transform" />
+                  <text x="0" y="3" fontSize="9" textAnchor="middle" fill="#0284C7" fontWeight="bold" className="pointer-events-none">
+                    ↻
+                  </text>
+                </g>
+
+                {/* 8 Interactive Resize Handles (White rounded squares matching photo) */}
+                {handles.map((hnd) => (
+                  <rect
+                    key={hnd.id}
+                    x={hnd.x - handleSize / 2}
+                    y={hnd.y - handleSize / 2}
+                    width={handleSize}
+                    height={handleSize}
+                    rx={2}
+                    fill="#FFFFFF"
+                    stroke="#0284C7"
+                    strokeWidth={1.5}
+                    style={{ cursor: hnd.cursor }}
+                    className="drop-shadow hover:scale-125 transition-transform hover:fill-sky-100"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      const world = screenToWorld(e.clientX, e.clientY);
+                      setResizingState({
+                        compId: selectedComp.instanceId,
+                        handle: hnd.id,
+                        startMouseX: world.x,
+                        startMouseY: world.y,
+                        startScale: scale,
+                        initialW: def.width,
+                        initialH: def.height,
+                      });
+                    }}
+                  />
+                ))}
+
+                {/* Live Size & Scale Badge when resizing */}
+                {resizingState?.compId === selectedComp.instanceId && (
+                  <g transform={`translate(${cx}, ${h + 20})`} className="pointer-events-none">
+                    <rect x="-42" y="-9" width="84" height="18" rx="4" fill="#0F172A" stroke="#38BDF8" strokeWidth="1" />
+                    <text x="0" y="3.5" fill="#38BDF8" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                      {Math.round(scale * 100)}% ({Math.round(w)}×{Math.round(h)})
+                    </text>
+                  </g>
+                )}
+              </g>
+            );
+          })()}
 
           {/* Render Live Remote Partner Cursors & Labels */}
           {isCollaborating &&
