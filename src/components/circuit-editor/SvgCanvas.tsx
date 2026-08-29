@@ -133,6 +133,98 @@ export function SvgCanvas() {
     [components]
   );
 
+  // List of all active pins in canvas for auto magnetic snap
+  const allPins = useMemo(() => {
+    const list: {
+      componentId: string;
+      pinId: string;
+      pinName: string;
+      x: number;
+      y: number;
+      side: string;
+    }[] = [];
+
+    components.forEach((comp) => {
+      const def = CIRCUIT_COMPONENTS_LIBRARY.find((d) => d.id === comp.defId);
+      if (!def) return;
+      def.pins.forEach((pin) => {
+        const coords = getPinCanvasCoords(comp.instanceId, pin.id);
+        list.push({
+          componentId: comp.instanceId,
+          pinId: pin.id,
+          pinName: pin.name,
+          x: coords.x,
+          y: coords.y,
+          side: pin.side,
+        });
+      });
+    });
+
+    return list;
+  }, [components, getPinCanvasCoords]);
+
+  // Smart Straight Axis Alignment & Pin Snapping (Sojashoji Straight Wire Alignment)
+  const getSnappedWirePoint = useCallback(
+    (worldX: number, worldY: number) => {
+      if (!isDrawingWire || !wireStart) {
+        return { x: worldX, y: worldY, isAlignedH: false, isAlignedV: false, targetPin: null };
+      }
+
+      const lastPoint =
+        wireWaypoints.length > 0
+          ? wireWaypoints[wireWaypoints.length - 1]
+          : { x: wireStart.x, y: wireStart.y };
+
+      // 1. Magnetic Pin Snapping (tolerance ~24px)
+      const targetPin = allPins.find((p) => {
+        if (p.componentId === wireStart.componentId && p.pinId === wireStart.pinId) return false;
+        const dx = p.x - worldX;
+        const dy = p.y - worldY;
+        return Math.sqrt(dx * dx + dy * dy) < 24;
+      });
+
+      if (targetPin) {
+        return {
+          x: targetPin.x,
+          y: targetPin.y,
+          isAlignedH: Math.abs(targetPin.y - lastPoint.y) < 1,
+          isAlignedV: Math.abs(targetPin.x - lastPoint.x) < 1,
+          targetPin,
+        };
+      }
+
+      // 2. Straight Axis Snapping (locks perfectly horizontal or vertical within 16px)
+      let sx = worldX;
+      let sy = worldY;
+      let isAlignedH = false;
+      let isAlignedV = false;
+
+      if (Math.abs(worldY - lastPoint.y) < 16) {
+        sy = lastPoint.y;
+        isAlignedH = true;
+      }
+      if (Math.abs(worldX - lastPoint.x) < 16) {
+        sx = lastPoint.x;
+        isAlignedV = true;
+      }
+
+      // 3. Grid snap fallback if grid enabled and not axis locked
+      if (snapToGrid) {
+        if (!isAlignedV) sx = Math.round(sx / gridSize) * gridSize;
+        if (!isAlignedH) sy = Math.round(sy / gridSize) * gridSize;
+      }
+
+      return {
+        x: sx,
+        y: sy,
+        isAlignedH,
+        isAlignedV,
+        targetPin: null,
+      };
+    },
+    [isDrawingWire, wireStart, wireWaypoints, allPins, snapToGrid, gridSize]
+  );
+
   // Decompose a list of multi-point waypoints into orthogonal sub-segments
   const getOrthogonalPoints = useCallback((points: Point[]): Point[] => {
     if (points.length < 2) return points;
@@ -476,9 +568,14 @@ export function SvgCanvas() {
       return;
     }
 
-    // When drawing wire, clicking empty canvas adds a custom waypoint corner
+    // When drawing wire, clicking empty canvas adds a custom waypoint corner or completes on snapped pin
     if (isDrawingWire) {
-      addWireWaypoint(world.x, world.y);
+      const snapped = getSnappedWirePoint(world.x, world.y);
+      if (snapped.targetPin) {
+        completeWire(snapped.targetPin.componentId, snapped.targetPin.pinId);
+      } else {
+        addWireWaypoint(snapped.x, snapped.y);
+      }
       return;
     }
 
@@ -497,7 +594,8 @@ export function SvgCanvas() {
     const world = screenToWorld(e.clientX, e.clientY);
 
     if (isDrawingWire) {
-      updateMousePos(world.x, world.y);
+      const snapped = getSnappedWirePoint(world.x, world.y);
+      updateMousePos(snapped.x, snapped.y);
     }
 
     if (draggingCompId) {
@@ -693,10 +791,61 @@ export function SvgCanvas() {
                   ...wireWaypoints,
                   { x: mousePos.x, y: mousePos.y },
                 ];
+                const lastPoint =
+                  wireWaypoints.length > 0
+                    ? wireWaypoints[wireWaypoints.length - 1]
+                    : { x: wireStart.x, y: wireStart.y };
+
+                const isAlignedH = Math.abs(mousePos.y - lastPoint.y) < 0.5;
+                const isAlignedV = Math.abs(mousePos.x - lastPoint.x) < 0.5;
                 const activePath = buildWirePathWithJumps(activePoints);
+                const distancePx = Math.round(Math.hypot(mousePos.x - lastPoint.x, mousePos.y - lastPoint.y));
 
                 return (
                   <>
+                    {/* Straight Horizontal Laser Alignment Guide */}
+                    {isAlignedH && (
+                      <g opacity="0.85">
+                        <line
+                          x1={Math.min(lastPoint.x, mousePos.x) - 400}
+                          y1={lastPoint.y}
+                          x2={Math.max(lastPoint.x, mousePos.x) + 400}
+                          y2={lastPoint.y}
+                          stroke="#10B981"
+                          strokeWidth="1.2"
+                          strokeDasharray="4 3"
+                        />
+                        <g transform={`translate(${(lastPoint.x + mousePos.x) / 2}, ${lastPoint.y - 12})`}>
+                          <rect x="-44" y="-8" width="88" height="16" rx="4" fill="#064E3B" stroke="#10B981" strokeWidth="1" />
+                          <text x="0" y="3.5" fill="#34D399" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">
+                            ↔ Straight (0°)
+                          </text>
+                        </g>
+                      </g>
+                    )}
+
+                    {/* Straight Vertical Laser Alignment Guide */}
+                    {isAlignedV && (
+                      <g opacity="0.85">
+                        <line
+                          x1={lastPoint.x}
+                          y1={Math.min(lastPoint.y, mousePos.y) - 400}
+                          x2={lastPoint.x}
+                          y2={Math.max(lastPoint.y, mousePos.y) + 400}
+                          stroke="#10B981"
+                          strokeWidth="1.2"
+                          strokeDasharray="4 3"
+                        />
+                        <g transform={`translate(${lastPoint.x + 14}, ${(lastPoint.y + mousePos.y) / 2})`}>
+                          <rect x="0" y="-8" width="88" height="16" rx="4" fill="#064E3B" stroke="#10B981" strokeWidth="1" />
+                          <text x="44" y="3.5" fill="#34D399" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">
+                            ↕ Straight (90°)
+                          </text>
+                        </g>
+                      </g>
+                    )}
+
+                    {/* Active Wire Path */}
                     <path
                       d={activePath}
                       fill="none"
@@ -706,6 +855,8 @@ export function SvgCanvas() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
+
+                    {/* Wire Waypoint Nodes */}
                     {activePoints.map((pt, idx) => (
                       <circle
                         key={idx}
@@ -716,6 +867,32 @@ export function SvgCanvas() {
                         className={idx === activePoints.length - 1 ? 'animate-pulse' : ''}
                       />
                     ))}
+
+                    {/* Target Pin Magnetic Snapped Ring */}
+                    {allPins
+                      .filter((p) => Math.hypot(p.x - mousePos.x, p.y - mousePos.y) < 2)
+                      .map((p) => (
+                        <g key={`${p.componentId}-${p.pinId}`} transform={`translate(${p.x}, ${p.y})`}>
+                          <circle cx="0" cy="0" r="10" fill="none" stroke="#38BDF8" strokeWidth="2" strokeDasharray="3 3" />
+                          <circle cx="0" cy="0" r="4.5" fill="#38BDF8" />
+                          <g transform="translate(0, -18)">
+                            <rect x="-38" y="-8" width="76" height="16" rx="4" fill="#0C4A6E" stroke="#38BDF8" strokeWidth="1" />
+                            <text x="0" y="3.5" fill="#E0F2FE" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">
+                              🎯 {p.pinName}
+                            </text>
+                          </g>
+                        </g>
+                      ))}
+
+                    {/* Distance Badge on Active Wire when not axis aligned */}
+                    {!isAlignedH && !isAlignedV && distancePx > 30 && (
+                      <g transform={`translate(${(lastPoint.x + mousePos.x) / 2}, ${(lastPoint.y + mousePos.y) / 2 - 10})`}>
+                        <rect x="-24" y="-7" width="48" height="14" rx="3" fill="#0F172A" stroke="#334155" strokeWidth="1" />
+                        <text x="0" y="3" fill="#94A3B8" fontSize="8" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                          {distancePx}px
+                        </text>
+                      </g>
+                    )}
                   </>
                 );
               })()}
