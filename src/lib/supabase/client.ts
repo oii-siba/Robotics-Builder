@@ -13,8 +13,20 @@ const getSupabaseCredentials = () => {
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-  const finalUrl = (customUrl || envUrl).trim().replace(/[\r\n]/g, '');
-  const finalKey = (customKey || envKey).trim().replace(/[\r\n]/g, '');
+  const rawUrl = (customUrl || envUrl).trim();
+  const rawKey = (customKey || envKey).trim();
+
+  // Validate URL format
+  let finalUrl = '';
+  if (rawUrl && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://'))) {
+    finalUrl = rawUrl.replace(/\/+$/, '');
+  }
+
+  // Validate Supabase JWT anon key (must be valid JWT without placeholder)
+  let finalKey = '';
+  if (rawKey && !rawKey.includes('placeholder') && rawKey.startsWith('eyJ')) {
+    finalKey = rawKey;
+  }
 
   return { url: finalUrl, key: finalKey };
 };
@@ -26,7 +38,7 @@ let lastUsedKey = '';
 export const getSupabaseClient = (): SupabaseClient | null => {
   const { url, key } = getSupabaseCredentials();
   
-  if (!url || !key || url.includes('placeholder') || key.includes('placeholder')) {
+  if (!url || !key) {
     return null;
   }
 
@@ -51,13 +63,13 @@ export const getSupabaseClient = (): SupabaseClient | null => {
 
 export const isSupabaseConfigured = (): boolean => {
   const { url, key } = getSupabaseCredentials();
-  return Boolean(url && key && !url.includes('placeholder') && !key.includes('placeholder'));
+  return Boolean(url && key);
 };
 
 export const saveSupabaseCredentialsLocally = (url: string, key: string) => {
   if (typeof window !== 'undefined') {
-    const cleanUrl = url.trim().replace(/[\r\n]/g, '');
-    const cleanKey = key.trim().replace(/[\r\n]/g, '');
+    const cleanUrl = url.trim().replace(/\/+$/, '');
+    const cleanKey = key.trim();
     localStorage.setItem('robocraft_supabase_url', cleanUrl);
     localStorage.setItem('robocraft_supabase_key', cleanKey);
     cachedClient = null; // reset cached instance
