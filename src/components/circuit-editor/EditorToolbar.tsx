@@ -20,6 +20,7 @@ import {
   FolderOpen,
   Users,
   Radio,
+  Palette,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCircuitStore } from '@/lib/circuit-engine/circuit-store';
@@ -332,7 +333,7 @@ export function EditorToolbar() {
           </button>
         </div>
 
-        {/* Wire Colors */}
+        {/* Wire Colors & RGB Custom Color Picker */}
         <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 flex-shrink-0">
           {wireColors.map((item) => (
             <button
@@ -340,11 +341,36 @@ export function EditorToolbar() {
               onClick={() => setActiveWireColor(item.color)}
               title={item.label}
               className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-slate-700 transition-transform ${
-                activeWireColor === item.color ? 'ring-2 ring-white scale-110' : 'hover:scale-110'
+                activeWireColor?.toLowerCase() === item.color.toLowerCase() ? 'ring-2 ring-white scale-110' : 'hover:scale-110'
               }`}
               style={{ backgroundColor: item.color }}
             />
           ))}
+
+          <div className="h-3 w-px bg-slate-800 mx-0.5" />
+
+          {/* RGB Custom Color Picker Button */}
+          <label
+            className={`relative flex items-center justify-center w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full cursor-pointer transition-all hover:scale-110 shadow-sm ${
+              !wireColors.some((c) => c.color.toLowerCase() === (activeWireColor || '').toLowerCase())
+                ? 'ring-2 ring-sky-400 scale-110 border border-white'
+                : 'border border-slate-600 hover:border-slate-400'
+            }`}
+            style={{
+              background: !wireColors.some((c) => c.color.toLowerCase() === (activeWireColor || '').toLowerCase())
+                ? activeWireColor
+                : 'conic-gradient(from 0deg, #ef4444, #f97316, #eab308, #10b981, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #ef4444)',
+            }}
+            title={`Custom RGB Wire Color Picker (${activeWireColor})`}
+          >
+            <input
+              type="color"
+              value={activeWireColor?.startsWith('#') ? activeWireColor : '#38BDF8'}
+              onChange={(e) => setActiveWireColor(e.target.value)}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+            />
+            <Palette className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] pointer-events-none" />
+          </label>
         </div>
 
         {/* Grid Controls */}

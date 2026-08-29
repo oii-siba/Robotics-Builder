@@ -148,7 +148,15 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
 
   setTitle: (title) => set({ title, saveStatus: 'unsaved' }),
   setActiveTool: (tool) => set({ activeTool: tool }),
-  setActiveWireColor: (color) => set({ activeWireColor: color }),
+  setActiveWireColor: (color) => {
+    const { selectedWireId, wires } = get();
+    if (selectedWireId) {
+      const nextWires = wires.map((w) => (w.id === selectedWireId ? { ...w, color } : w));
+      set({ activeWireColor: color, wires: nextWires, saveStatus: 'unsaved' });
+    } else {
+      set({ activeWireColor: color });
+    }
+  },
   setSelectedComponent: (id) => set({ selectedComponentId: id, selectedWireId: null }),
   setSelectedWire: (id) => set({ selectedWireId: id, selectedComponentId: null }),
   setZoom: (zoom) => set({ zoom: Math.max(0.2, Math.min(3.0, Number(zoom.toFixed(3)))) }),
