@@ -190,8 +190,40 @@ export function CircuitCollabModal({ isOpen, onClose }: CircuitCollabModalProps)
                 </div>
               </div>
 
+              {/* Your Display Name on Cursor */}
+              <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                  <span>Your Cursor Display Name</span>
+                  <span className="text-[10px] text-sky-400">Visible to all partners</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow"
+                    style={{ backgroundColor: myCollabUser?.color || '#38BDF8' }}
+                  >
+                    {(myCollabUser?.name || 'U').slice(0, 2).toUpperCase()}
+                  </div>
+                  <input
+                    type="text"
+                    defaultValue={myCollabUser?.name || 'Partner'}
+                    onBlur={(e) => {
+                      if (e.target.value.trim()) {
+                        useCircuitStore.getState().setCollabUserName(e.target.value.trim());
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    placeholder="Enter your name..."
+                    className="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-sky-500"
+                  />
+                </div>
+              </div>
+
               {/* Active Collaborators Section */}
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2.5 pt-1">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-300">
                   <span className="flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4 text-emerald-400" />

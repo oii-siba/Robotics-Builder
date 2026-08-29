@@ -209,6 +209,10 @@ class CollabSyncService {
     this.currentUser = null;
   }
 
+  public setCurrentUser(user: Collaborator) {
+    this.currentUser = user;
+  }
+
   public getRoomId() {
     return this.activeRoomId;
   }

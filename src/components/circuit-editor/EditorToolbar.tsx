@@ -39,8 +39,12 @@ export function EditorToolbar() {
   const snapToGrid = useCircuitStore((state) => state.snapToGrid);
   const toggleSnapToGrid = useCircuitStore((state) => state.toggleSnapToGrid);
   const selectedComponentId = useCircuitStore((state) => state.selectedComponentId);
+  const selectedWireId = useCircuitStore((state) => state.selectedWireId);
+  const setSelectedWire = useCircuitStore((state) => state.setSelectedWire);
+  const setSelectedComponent = useCircuitStore((state) => state.setSelectedComponent);
   const rotateComponent = useCircuitStore((state) => state.rotateComponent);
   const removeComponent = useCircuitStore((state) => state.removeComponent);
+  const removeWire = useCircuitStore((state) => state.removeWire);
   const undo = useCircuitStore((state) => state.undo);
   const redo = useCircuitStore((state) => state.redo);
   const clearCanvas = useCircuitStore((state) => state.clearCanvas);
@@ -445,14 +449,24 @@ export function EditorToolbar() {
           </button>
         )}
 
-        {/* Delete selected */}
-        {selectedComponentId && (
+        {/* Delete selected component or wire */}
+        {(selectedComponentId || selectedWireId) && (
           <button
-            onClick={() => removeComponent(selectedComponentId)}
-            className="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
-            title="Delete"
+            onClick={() => {
+              if (selectedComponentId) {
+                removeComponent(selectedComponentId);
+                setSelectedComponent(null);
+              }
+              if (selectedWireId) {
+                removeWire(selectedWireId);
+                setSelectedWire(null);
+              }
+            }}
+            className="bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all active:scale-95 shadow-sm animate-in fade-in"
+            title={selectedWireId ? 'Delete Wire (Del)' : 'Delete Component (Del)'}
           >
             <Trash2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{selectedWireId ? 'Delete Wire' : 'Delete'}</span>
           </button>
         )}
 

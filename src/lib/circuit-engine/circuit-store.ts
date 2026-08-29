@@ -81,6 +81,7 @@ interface CircuitState {
   joinCollaboration: (roomId: string, role?: CollabRole) => void;
   leaveCollaboration: () => void;
   updateMyCursor: (x: number, y: number, activeComponentId?: string | null) => void;
+  setCollabUserName: (name: string) => void;
 
   addComponent: (defId: string, x: number, y: number) => string;
   updateComponentPosition: (instanceId: string, x: number, y: number) => void;
@@ -268,6 +269,38 @@ export const useCircuitStore = create<CircuitState>((set, get) => ({
       payload: { x, y, activeComponentId },
       timestamp: Date.now(),
     });
+  },
+
+  setCollabUserName: (name: string) => {
+    const cleanName = name.trim();
+    if (!cleanName) return;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('robocraft_user_name', cleanName);
+    }
+    set((s) => {
+      if (!s.myCollabUser) return {};
+      const updatedUser = { ...s.myCollabUser, name: cleanName };
+      return {
+        myCollabUser: updatedUser,
+        collaborators: s.collaborators.map((c) =>
+          c.id === updatedUser.id ? updatedUser : c
+        ),
+      };
+    });
+
+    const state = get();
+    if (state.isCollaborating && state.myCollabUser && state.collabRoomId) {
+      collabSyncService.setCurrentUser({ ...state.myCollabUser, name: cleanName });
+      collabSyncService.broadcast({
+        type: 'presence_heartbeat',
+        senderId: state.myCollabUser.id,
+        senderName: cleanName,
+        senderColor: state.myCollabUser.color,
+        roomId: state.collabRoomId,
+        payload: { user: { ...state.myCollabUser, name: cleanName } },
+        timestamp: Date.now(),
+      });
+    }
   },
 
   addComponent: (defId, x, y) => {

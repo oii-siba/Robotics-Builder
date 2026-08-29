@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Crosshair } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Crosshair, Trash2 } from 'lucide-react';
 import { useCircuitStore } from '@/lib/circuit-engine/circuit-store';
 import { SvgComponentRenderer } from './SvgComponentRenderer';
 import { CIRCUIT_COMPONENTS_LIBRARY } from '@/lib/circuit-engine/components-library';
@@ -37,6 +37,7 @@ export function SvgCanvas() {
 
   const updateComponentPosition = useCircuitStore((state) => state.updateComponentPosition);
   const addComponent = useCircuitStore((state) => state.addComponent);
+  const removeComponent = useCircuitStore((state) => state.removeComponent);
 
   const isDrawingWire = useCircuitStore((state) => state.isDrawingWire);
   const wireStart = useCircuitStore((state) => state.wireStart);
@@ -56,6 +57,9 @@ export function SvgCanvas() {
   const collaborators = useCircuitStore((state) => state.collaborators);
   const myCollabUser = useCircuitStore((state) => state.myCollabUser);
   const updateMyCursor = useCircuitStore((state) => state.updateMyCursor);
+
+  // Wire quick actions menu position
+  const [wireMenuPos, setWireMenuPos] = useState<Point | null>(null);
 
   // Dragging state
   const [draggingCompId, setDraggingCompId] = useState<string | null>(null);
@@ -483,6 +487,7 @@ export function SvgCanvas() {
     if (target === svgRef.current || target?.id === 'circuit-main-svg' || target?.tagName?.toLowerCase() === 'rect') {
       setSelectedComponent(null);
       setSelectedWire(null);
+      setWireMenuPos(null);
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     }
@@ -520,7 +525,7 @@ export function SvgCanvas() {
     setIsPanning(false);
   };
 
-  // Keyboard Shortcuts for Zoom, Fit, Pan, and Wire cancellation
+  // Keyboard Shortcuts for Zoom, Fit, Pan, Wire & Component deletion
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore when user is typing in input or textarea
@@ -530,6 +535,18 @@ export function SvgCanvas() {
 
       if (e.key === 'Escape' && isDrawingWire) {
         cancelWire();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        const state = useCircuitStore.getState();
+        if (state.selectedWireId) {
+          e.preventDefault();
+          removeWire(state.selectedWireId);
+          setSelectedWire(null);
+          setWireMenuPos(null);
+        } else if (state.selectedComponentId) {
+          e.preventDefault();
+          removeComponent(state.selectedComponentId);
+          setSelectedComponent(null);
+        }
       } else if (e.key === '+' || e.key === '=') {
         e.preventDefault();
         handleZoomIn();
@@ -546,7 +563,7 @@ export function SvgCanvas() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDrawingWire, cancelWire, handleZoomIn, handleZoomOut, handleResetView, handleFitToScreen]);
+  }, [isDrawingWire, cancelWire, handleZoomIn, handleZoomOut, handleResetView, handleFitToScreen, removeWire, removeComponent, setSelectedWire, setSelectedComponent]);
 
   return (
     <div
@@ -603,6 +620,9 @@ export function SvgCanvas() {
                     completeWireAtPoint(world.x, world.y, wire.id);
                   } else {
                     setSelectedWire(wire.id);
+                    setSelectedComponent(null);
+                    const world = screenToWorld(e.clientX, e.clientY);
+                    setWireMenuPos(world);
                   }
                 }}
                 onDoubleClick={(e) => {
@@ -799,6 +819,63 @@ export function SvgCanvas() {
               ))}
         </g>
       </svg>
+
+      {/* Floating Wire Quick Action Card when a wire is selected */}
+      {(() => {
+        const selectedWire = wires.find((w) => w.id === selectedWireId);
+        if (!selectedWire) return null;
+
+        const containerWidth = containerRef.current?.clientWidth || 800;
+        const rawX = wireMenuPos ? wireMenuPos.x * zoom + pan.x : containerWidth / 2 - 100;
+        const rawY = wireMenuPos ? wireMenuPos.y * zoom + pan.y : 100;
+
+        const leftPos = Math.max(16, Math.min(containerWidth - 280, rawX - 60));
+        const topPos = Math.max(16, rawY - 50);
+
+        return (
+          <div
+            className="absolute z-30 flex items-center gap-2 bg-slate-900/95 border border-slate-700/80 shadow-2xl p-2 rounded-xl backdrop-blur-md animate-in fade-in zoom-in-95 text-xs text-white select-none"
+            style={{ left: leftPos, top: topPos }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-1.5 px-2 py-0.5 border-r border-slate-800">
+              <span
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: selectedWire.color || '#38BDF8' }}
+              />
+              <span className="font-mono text-[11px] font-bold text-slate-300 max-w-[130px] truncate">
+                {selectedWire.label || 'Wire Net'}
+              </span>
+            </div>
+
+            {/* Delete Wire Button */}
+            <button
+              onClick={() => {
+                removeWire(selectedWire.id);
+                setSelectedWire(null);
+                setWireMenuPos(null);
+              }}
+              className="bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/40 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              title="Delete this Wire (Del / Backspace)"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Wire</span>
+            </button>
+
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setSelectedWire(null);
+                setWireMenuPos(null);
+              }}
+              className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors text-xs"
+              title="Deselect"
+            >
+              ✕
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Floating Canvas Controls (Zoom In/Out, Fit View, Reset View) */}
       <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md border border-slate-800 p-1.5 rounded-xl shadow-2xl">
