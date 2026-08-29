@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Bot, 
@@ -41,6 +41,17 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [showPresetsMenu, setShowPresetsMenu] = useState(false);
+  const presetsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (presetsRef.current && !presetsRef.current.contains(e.target as Node)) {
+        setShowPresetsMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const tabs: { id: StudioTab; label: string; icon: any }[] = [
     { id: '3d-workbench', label: '3D Assembly', icon: Box },
@@ -51,7 +62,7 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
   ];
 
   return (
-    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2.5 sm:px-4 z-30 select-none shadow-md">
+    <header className="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-2.5 sm:px-4 relative z-30 select-none shadow-md">
       {/* Brand & Title */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
@@ -82,19 +93,19 @@ export function Navbar({ onOpenShare, onOpenSupabase }: NavbarProps) {
           />
 
           {/* Preset Templates Dropdown */}
-          <div className="relative flex-shrink-0">
+          <div ref={presetsRef} className="relative flex-shrink-0">
             <button
               onClick={() => setShowPresetsMenu(!showPresetsMenu)}
               className="text-[11px] font-mono text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-1.5 sm:px-2 py-1 rounded-md flex items-center gap-1 transition-colors"
               title="Load Preset Robot"
             >
-              <Sparkles className="w-3 h-3 text-amber-400" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span className="hidden md:inline">Templates</span>
               <ChevronDown className="w-3 h-3" />
             </button>
 
             {showPresetsMenu && (
-              <div className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
+              <div className="absolute left-0 top-full mt-1.5 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
                 <div className="text-[10px] uppercase font-mono text-slate-500 px-2 py-1">
                   Load Preset Robot
                 </div>

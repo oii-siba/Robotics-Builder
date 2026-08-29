@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Zap, 
   RotateCw, 
@@ -63,6 +63,23 @@ export function EditorToolbar() {
   const [showPresets, setShowPresets] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
+
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const presetsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener to automatically close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+      if (presetsMenuRef.current && !presetsMenuRef.current.contains(e.target as Node)) {
+        setShowPresets(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // 1. Export Circuit as JPEG Image
   const handleExportJPEG = () => {
@@ -259,7 +276,7 @@ export function EditorToolbar() {
   ];
 
   return (
-    <header className="h-12 bg-slate-900 border-b border-slate-800 px-2 sm:px-4 flex items-center justify-between z-30 select-none text-xs text-white shadow-md overflow-x-auto custom-scrollbar gap-2">
+    <header className="h-12 bg-slate-900 border-b border-slate-800 px-2 sm:px-4 flex items-center justify-between relative z-40 select-none text-xs text-white shadow-md gap-2">
       {/* Hidden File Input for JSON Upload */}
       <input
         ref={fileInputRef}
@@ -282,7 +299,7 @@ export function EditorToolbar() {
         </div>
 
         {/* Pre-built Robotics Circuit Templates Dropdown */}
-        <div className="relative flex-shrink-0">
+        <div ref={presetsMenuRef} className="relative flex-shrink-0">
           <button
             onClick={() => setShowPresets(!showPresets)}
             className="bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 px-2 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors"
@@ -293,7 +310,7 @@ export function EditorToolbar() {
           </button>
 
           {showPresets && (
-            <div className="absolute left-0 mt-1 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
+            <div className="absolute left-0 top-full mt-1.5 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
               <div className="text-[10px] uppercase font-mono text-slate-500 px-2 py-1">
                 Load Pre-Built Robotics Circuit
               </div>
@@ -407,7 +424,7 @@ export function EditorToolbar() {
         </button>
 
         {/* Export Dropdown Menu (JPEG / PNG / JSON) */}
-        <div className="relative">
+        <div ref={exportMenuRef} className="relative flex-shrink-0">
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
             className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors border border-slate-700"
@@ -419,7 +436,7 @@ export function EditorToolbar() {
           </button>
 
           {showExportMenu && (
-            <div className="absolute right-0 mt-1 w-52 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
+            <div className="absolute right-0 top-full mt-1.5 w-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs text-white animate-in fade-in zoom-in-95">
               <div className="text-[10px] uppercase font-mono text-slate-500 px-2 py-1">
                 Save & Export As
               </div>
