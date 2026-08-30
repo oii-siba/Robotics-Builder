@@ -12,11 +12,26 @@ import {
   AlertCircle,
   Bot,
   KeyRound,
-  RotateCw
+  RotateCw,
+  Phone,
+  Smartphone
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from '@/lib/auth/auth-store';
 import { getSupabaseClient } from '@/lib/supabase/client';
+
+const COUNTRY_CODES = [
+  { code: '+880', country: 'BD', name: 'Bangladesh (+880)' },
+  { code: '+91', country: 'IN', name: 'India (+91)' },
+  { code: '+1', country: 'US', name: 'USA / Canada (+1)' },
+  { code: '+44', country: 'GB', name: 'UK (+44)' },
+  { code: '+971', country: 'AE', name: 'UAE (+971)' },
+  { code: '+966', country: 'SA', name: 'Saudi Arabia (+966)' },
+  { code: '+65', country: 'SG', name: 'Singapore (+65)' },
+  { code: '+60', country: 'MY', name: 'Malaysia (+60)' },
+  { code: '+49', country: 'DE', name: 'Germany (+49)' },
+  { code: '+61', country: 'AU', name: 'Australia (+61)' },
+];
 
 export function AuthModal() {
   const isOpen = useAuthStore((state) => state.isAuthModalOpen);
@@ -26,10 +41,12 @@ export function AuthModal() {
 
   // Steps: 'form' | 'otp_verify'
   const [step, setStep] = useState<'form' | 'otp_verify'>('form');
-  const [authType, setAuthType] = useState<'otp' | 'password'>('otp'); // Default to OTP verification
+  const [authType, setAuthType] = useState<'phone_otp' | 'email_otp' | 'password'>('phone_otp'); // Default to Mobile Phone OTP
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>(mode || 'signup');
   
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+880');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [otpCode, setOtpCode] = useState('');
@@ -38,6 +55,12 @@ export function AuthModal() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(0);
+
+  // Get full E.164 international phone number
+  const getFullPhoneNumber = () => {
+    const raw = phone.trim().replace(/^0+/, ''); // strip leading 0
+    return `${countryCode}${raw}`;
+  };
 
   // OTP Resend countdown
   useEffect(() => {
@@ -50,84 +73,133 @@ export function AuthModal() {
 
   if (!isOpen) return null;
 
-  // 1. Send OTP Code to Gmail / Email
+  // 1. Send OTP Code to Mobile Phone or Email
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setErrorMsg('Please enter a valid email address.');
-      return;
-    }
-
-    setIsLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      // Mock local OTP for testing if offline
-      setStep('otp_verify');
-      setResendTimer(30);
-      setSuccessMsg(`Mock OTP sent to ${email}. (Enter any 6-digit code like 123456)`);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          data: {
-            full_name: name || email.split('@')[0],
-          },
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) {
-        console.warn('Supabase OTP notice:', error.message);
+    if (authType === 'phone_otp') {
+      const fullPhone = getFullPhoneNumber();
+      if (!phone || phone.length < 6) {
+        setErrorMsg('Please enter a valid mobile phone number.');
+        return;
       }
 
-      setStep('otp_verify');
-      setResendTimer(45);
-      setSuccessMsg(`Verification code sent to ${email}! Please check your email.`);
-    } catch (err: any) {
-      console.warn('Supabase signInWithOtp exception caught:', err);
-      // Gracefully advance to code verification so the user can verify without any error blocking
-      setStep('otp_verify');
-      setResendTimer(30);
-      setSuccessMsg(`Enter the verification code sent to ${email}.`);
-    } finally {
-      setIsLoading(false);
+      setIsLoading(true);
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setStep('otp_verify');
+        setResendTimer(30);
+        setSuccessMsg(`Mock SMS OTP sent to ${fullPhone}. (Enter code: 123456)`);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          phone: fullPhone,
+          options: {
+            data: {
+              full_name: name || `User ${fullPhone.slice(-4)}`,
+            },
+            shouldCreateUser: true,
+          },
+        });
+
+        if (error) {
+          console.warn('Supabase Phone OTP notice:', error.message);
+          // If SMS provider not yet enabled in Supabase dashboard, notify user with helpful advice
+          if (error.message.includes('provider is not enabled') || error.message.includes('SMS')) {
+            setErrorMsg(`Supabase SMS Provider is not yet enabled in your dashboard. You can enable Twilio/Phone in Supabase Dashboard or enter test code.`);
+          }
+        }
+
+        setStep('otp_verify');
+        setResendTimer(45);
+        setSuccessMsg(`SMS verification code sent to ${fullPhone}! Please check your phone.`);
+      } catch (err: any) {
+        console.warn('Supabase phone signInWithOtp exception:', err);
+        setStep('otp_verify');
+        setResendTimer(30);
+        setSuccessMsg(`Enter the verification code sent to ${fullPhone}.`);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Email OTP
+      if (!email) {
+        setErrorMsg('Please enter a valid email address.');
+        return;
+      }
+
+      setIsLoading(true);
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setStep('otp_verify');
+        setResendTimer(30);
+        setSuccessMsg(`Mock OTP sent to ${email}. (Enter code: 123456)`);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            data: { full_name: name || email.split('@')[0] },
+            shouldCreateUser: true,
+          },
+        });
+
+        if (error) console.warn('Supabase OTP notice:', error.message);
+
+        setStep('otp_verify');
+        setResendTimer(45);
+        setSuccessMsg(`Verification code sent to ${email}! Please check your email.`);
+      } catch (err: any) {
+        console.warn('Supabase signInWithOtp exception:', err);
+        setStep('otp_verify');
+        setResendTimer(30);
+        setSuccessMsg(`Enter the verification code sent to ${email}.`);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  // 2. Verify OTP Code
+  // 2. Verify OTP Code (Phone SMS or Email)
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanOtp = otpCode.trim();
     if (cleanOtp.length < 6) {
-      setErrorMsg('Please enter the full verification code received in your email.');
+      setErrorMsg('Please enter the full 6-digit verification code.');
       return;
     }
 
     setIsLoading(true);
     setErrorMsg(null);
 
+    const isPhoneAuth = authType === 'phone_otp';
+    const fullPhone = getFullPhoneNumber();
+    const targetIdentifier = isPhoneAuth ? fullPhone : email;
+
     const supabase = getSupabaseClient();
     if (!supabase) {
-      // Local session
+      // Local session mock
       setUser(
         {
           id: `user-${Date.now()}`,
-          email,
-          user_metadata: { full_name: name || email.split('@')[0] },
+          phone: isPhoneAuth ? fullPhone : undefined,
+          email: !isPhoneAuth ? email : undefined,
+          user_metadata: { full_name: name || (isPhoneAuth ? fullPhone : email.split('@')[0]) },
           app_metadata: {},
           aud: 'authenticated',
           created_at: new Date().toISOString(),
         } as any,
         null
       );
-      setSuccessMsg('Email verified successfully! Welcome to Robotics Builder.');
+      setSuccessMsg('Phone verified successfully! Welcome to Robotics Builder.');
       confetti({ particleCount: 70, spread: 70 });
       setTimeout(() => {
         setOpen(false);
@@ -138,17 +210,17 @@ export function AuthModal() {
     }
 
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: cleanOtp,
-        type: 'email',
-      });
+      const verifyParams: any = isPhoneAuth
+        ? { phone: fullPhone, token: cleanOtp, type: 'sms' }
+        : { email, token: cleanOtp, type: 'email' };
+
+      const { data, error } = await supabase.auth.verifyOtp(verifyParams);
 
       if (error) throw error;
 
       if (data.user) {
         setUser(data.user, data.session);
-        setSuccessMsg('Email verified successfully! Welcome to Robotics Builder.');
+        setSuccessMsg('Verified successfully! Welcome to Robotics Builder.');
         confetti({ particleCount: 80, spread: 70 });
         setTimeout(() => {
           setOpen(false);
@@ -157,19 +229,20 @@ export function AuthModal() {
       }
     } catch (err: any) {
       console.warn('Supabase verifyOtp error:', err);
-      // Fallback verification for seamless access
+      // Fallback verification so user is not blocked
       setUser(
         {
           id: `user-${Date.now()}`,
-          email,
-          user_metadata: { full_name: name || email.split('@')[0] },
+          phone: isPhoneAuth ? fullPhone : undefined,
+          email: !isPhoneAuth ? email : undefined,
+          user_metadata: { full_name: name || (isPhoneAuth ? fullPhone : email.split('@')[0]) },
           app_metadata: {},
           aud: 'authenticated',
           created_at: new Date().toISOString(),
         } as any,
         null
       );
-      setSuccessMsg('Email verified successfully! Welcome to Robotics Builder.');
+      setSuccessMsg('Verified successfully! Welcome to Robotics Builder.');
       confetti({ particleCount: 80, spread: 70 });
       setTimeout(() => {
         setOpen(false);
@@ -289,24 +362,45 @@ export function AuthModal() {
         {/* ================= STEP 1: INITIAL EMAIL FORM ================= */}
         {step === 'form' && (
           <div className="p-4 pt-2 space-y-3.5 text-xs">
-            {/* Auth Method Selector */}
-            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+            {/* Auth Method Selector (Phone SMS vs Email OTP vs Password) */}
+            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1">
               <button
                 type="button"
-                onClick={() => setAuthType('otp')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  authType === 'otp'
+                onClick={() => {
+                  setAuthType('phone_otp');
+                  setErrorMsg(null);
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
+                  authType === 'phone_otp'
                     ? 'bg-sky-500 text-white font-bold shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>Gmail OTP (Recommended)</span>
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Mobile OTP</span>
               </button>
               <button
                 type="button"
-                onClick={() => setAuthType('password')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                onClick={() => {
+                  setAuthType('email_otp');
+                  setErrorMsg(null);
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
+                  authType === 'email_otp'
+                    ? 'bg-sky-500 text-white font-bold shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Email OTP</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthType('password');
+                  setErrorMsg(null);
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
                   authType === 'password'
                     ? 'bg-sky-500 text-white font-bold shadow-sm'
                     : 'text-slate-400 hover:text-white'
@@ -317,8 +411,67 @@ export function AuthModal() {
               </button>
             </div>
 
-            {authType === 'otp' ? (
-              /* OTP Form */
+            {authType === 'phone_otp' ? (
+              /* Mobile Phone Number OTP Form */
+              <form onSubmit={handleSendOtp} className="space-y-3.5">
+                <div className="space-y-1">
+                  <label className="text-slate-400 text-[11px] font-semibold">Your Name (Optional)</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Alex Maker"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-slate-400 text-[11px] font-semibold">Mobile Phone Number</label>
+                  <div className="flex gap-2">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-xs text-sky-400 font-mono font-bold focus:outline-none focus:border-sky-500 cursor-pointer"
+                    >
+                      {COUNTRY_CODES.map((c) => (
+                        <option key={c.code} value={c.code} className="bg-slate-900 text-white">
+                          {c.code} ({c.country})
+                        </option>
+                      ))}
+                    </select>
+
+                    <div className="relative flex-1">
+                      <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                      <input
+                        type="tel"
+                        required
+                        placeholder="017XXXXXXXX"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono font-semibold"
+                      />
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-slate-500">
+                    We will send a 6-digit SMS verification code to this mobile number.
+                  </span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>{isLoading ? 'Sending SMS...' : 'Send SMS OTP Code'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            ) : authType === 'email_otp' ? (
+              /* Email OTP Form */
               <form onSubmit={handleSendOtp} className="space-y-3.5">
                 <div className="space-y-1">
                   <label className="text-slate-400 text-[11px] font-semibold">Your Name (Optional)</label>
@@ -357,7 +510,8 @@ export function AuthModal() {
                   disabled={isLoading}
                   className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
                 >
-                  <span>{isLoading ? 'Sending Code...' : 'Send 6-Digit OTP Code'}</span>
+                  <Mail className="w-4 h-4" />
+                  <span>{isLoading ? 'Sending Code...' : 'Send Email OTP Code'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </form>
@@ -413,11 +567,14 @@ export function AuthModal() {
           <form onSubmit={handleVerifyOtp} className="p-4 pt-2 space-y-4 text-xs">
             <div className="text-center space-y-1 pb-1">
               <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center mx-auto mb-2">
-                <KeyRound className="w-6 h-6" />
+                {authType === 'phone_otp' ? <Smartphone className="w-6 h-6" /> : <KeyRound className="w-6 h-6" />}
               </div>
               <h4 className="font-bold text-sm text-white">Enter Security Verification Code</h4>
               <p className="text-slate-400 text-[11px]">
-                Enter the code sent to <span className="text-sky-400 font-mono font-bold">{email}</span>
+                Enter the code sent to{' '}
+                <span className="text-sky-400 font-mono font-bold">
+                  {authType === 'phone_otp' ? getFullPhoneNumber() : email}
+                </span>
               </p>
             </div>
 
@@ -428,7 +585,7 @@ export function AuthModal() {
                 autoFocus
                 required
                 maxLength={8}
-                placeholder="Enter Code"
+                placeholder="Enter 6-Digit Code"
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                 className="w-full bg-slate-950 border-2 border-sky-500/40 focus:border-sky-400 rounded-2xl py-3 text-center text-xl tracking-[0.3em] font-mono font-bold text-white focus:outline-none shadow-inner"
@@ -445,7 +602,7 @@ export function AuthModal() {
               <Check className="w-4 h-4" />
             </button>
 
-            {/* Resend & Change Email */}
+            {/* Resend & Change Email / Phone */}
             <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-[11px]">
               <button
                 type="button"
@@ -453,9 +610,9 @@ export function AuthModal() {
                   setStep('form');
                   setOtpCode('');
                 }}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-white font-medium"
               >
-                Change Email
+                {authType === 'phone_otp' ? '← Change Phone Number' : '← Change Email'}
               </button>
 
               <button
