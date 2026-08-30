@@ -549,6 +549,49 @@ export function SvgComponentRenderer({
         );
       }
 
+      // =========================================================================
+      // 12. REALISTIC DUPONT JUMPER WIRE (M-M)
+      // =========================================================================
+      case 'jumper_wire': {
+        const wireColor = def.bodyColor || '#EF4444';
+        return (
+          <g>
+            {/* Flexible Silicone Wire Body with 3D Highlight Glare */}
+            <path
+              d="M 24 20 C 52 2, 88 38, 116 20"
+              fill="none"
+              stroke={wireColor}
+              strokeWidth={6}
+              strokeLinecap="round"
+              filter="drop-shadow(0 3px 5px rgba(0,0,0,0.4))"
+            />
+            <path
+              d="M 24 20 C 52 2, 88 38, 116 20"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth={1.5}
+              opacity={0.35}
+              strokeLinecap="round"
+            />
+
+            {/* Left Dupont Connector Housing Boot */}
+            <rect x={12} y={12} width={15} height={16} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={15} y={16} width={4} height={8} rx={1} fill="#0F172A" />
+            <line x1={20} y1={12} x2={20} y2={28} stroke="#334155" strokeWidth={0.8} />
+
+            {/* Left Silver Metal Pin Tip */}
+            <rect x={2} y={18.5} width={10} height={3} rx={0.5} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.6} />
+
+            {/* Right Dupont Connector Housing Boot */}
+            <rect x={113} y={12} width={15} height={16} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={121} y={16} width={4} height={8} rx={1} fill="#0F172A" />
+            <line x1={120} y1={12} x2={120} y2={28} stroke="#334155" strokeWidth={0.8} />
+
+            {/* Right Silver Metal Pin Tip */}
+            <rect x={128} y={18.5} width={10} height={3} rx={0.5} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.6} />
+          </g>
+        );
+      }
 
       // =========================================================================
       // DEFAULT REALISTIC CHIP IC

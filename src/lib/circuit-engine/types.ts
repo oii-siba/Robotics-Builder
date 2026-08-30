@@ -83,6 +83,7 @@ export interface CircuitComponentDef {
     | 'button' 
     | 'gnd_sym' 
     | 'breadboard_400'
+    | 'jumper_wire'
     | 'oled_display';
 }
 

@@ -454,6 +454,50 @@ export function PartMesh({ part, isSelected, isWireframe = false, onClick }: Par
           </group>
         );
 
+      // ================= JUMPER WIRES =================
+      case 'jumper_wires': {
+        const rainbowColors = ['#EF4444', '#F97316', '#EAB308', '#10B981', '#06B6D4', '#3B82F6', '#8B5CF6', '#1E293B'];
+        return (
+          <group>
+            {/* Rainbow Ribbon Wire Strands */}
+            {rainbowColors.map((col, idx) => {
+              const offsetZ = (idx - 3.5) * 0.08;
+              return (
+                <group key={idx} position={[0, 0, offsetZ]}>
+                  {/* Arched flexible wire segment */}
+                  <mesh position={[0, 0.08, 0]} castShadow>
+                    <cylinderGeometry args={[0.02, 0.02, 1.2, 12]} />
+                    <meshStandardMaterial color={col} roughness={0.5} wireframe={isWireframe} />
+                  </mesh>
+                </group>
+              );
+            })}
+
+            {/* Left Black Dupont Connector Housing Block */}
+            <mesh position={[-0.65, 0.08, 0]} castShadow>
+              <boxGeometry args={[0.18, 0.14, 0.72]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.7} />
+            </mesh>
+            {/* Left Silver Terminal Pins */}
+            <mesh position={[-0.78, 0.08, 0]}>
+              <boxGeometry args={[0.08, 0.04, 0.65]} />
+              <meshStandardMaterial color="#E2E8F0" metalness={0.9} roughness={0.2} />
+            </mesh>
+
+            {/* Right Black Dupont Connector Housing Block */}
+            <mesh position={[0.65, 0.08, 0]} castShadow>
+              <boxGeometry args={[0.18, 0.14, 0.72]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.7} />
+            </mesh>
+            {/* Right Silver Terminal Pins */}
+            <mesh position={[0.78, 0.08, 0]}>
+              <boxGeometry args={[0.08, 0.04, 0.65]} />
+              <meshStandardMaterial color="#E2E8F0" metalness={0.9} roughness={0.2} />
+            </mesh>
+          </group>
+        );
+      }
+
       // ================= 2WD CHASSIS =================
       case 'chassis_2wd':
         return (

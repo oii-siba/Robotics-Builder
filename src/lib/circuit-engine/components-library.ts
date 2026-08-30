@@ -917,5 +917,40 @@ export const CIRCUIT_COMPONENTS_LIBRARY: CircuitComponentDef[] = [
       { id: 'BOT_VCC_L', name: 'Bot + (5V)', type: 'power-5v', x: 20, y: 192, side: 'bottom', color: '#EF4444' },
       { id: 'BOT_VCC_R', name: 'Bot + (5V)', type: 'power-5v', x: 360, y: 192, side: 'bottom', color: '#EF4444' },
     ]
+  },
+  {
+    id: 'jumper_wire_dupont',
+    name: 'Dupont Jumper Wire (M-M)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires',
+    prefix: 'W',
+    width: 140,
+    height: 40,
+    bodyColor: '#EF4444',
+    accentColor: '#1E293B',
+    description: '20cm Flexible Male-to-Male Dupont Jumper Wire for Breadboard & Prototyping',
+    renderType: 'jumper_wire',
+    pins: [
+      { id: 'PIN_A', name: 'Tip A', type: 'digital', x: 6, y: 20, side: 'left', color: '#EF4444' },
+      { id: 'PIN_B', name: 'Tip B', type: 'digital', x: 134, y: 20, side: 'right', color: '#EF4444' },
+    ]
+  },
+  {
+    id: 'jumper_wire_black_gnd',
+    name: 'GND Jumper Wire (Black)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires',
+    prefix: 'W',
+    width: 140,
+    height: 40,
+    bodyColor: '#1F2937',
+    accentColor: '#111827',
+    description: 'Black Ground Return Dupont Jumper Wire',
+    renderType: 'jumper_wire',
+    pins: [
+      { id: 'PIN_A', name: 'GND A', type: 'ground', x: 6, y: 20, side: 'left', color: '#1F2937' },
+      { id: 'PIN_B', name: 'GND B', type: 'ground', x: 134, y: 20, side: 'right', color: '#1F2937' },
+    ]
   }
 ];
+

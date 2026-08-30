@@ -81,6 +81,7 @@ export interface RobotPartDefinition {
     | 'battery_9v' 
     | 'module_buck_converter'
     | 'breadboard_400' 
+    | 'jumper_wires'
     | 'solar_panel'
     | 'custom_box';
 }

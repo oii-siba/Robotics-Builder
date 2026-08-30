@@ -814,6 +814,27 @@ export const ROBOT_PARTS_CATALOG: RobotPartDefinition[] = [
     ]
   },
   {
+    id: 'jumper_wires_40p',
+    name: '40-Pin Rainbow Dupont Jumper Wires',
+    category: 'accessories',
+    description: 'Multi-color flexible 20cm Dupont jumper wires (M-M / M-F) for breadboard prototyping and sensor wiring.',
+    dimensions: [120, 10, 30],
+    defaultColor: '#EF4444',
+    approxPriceUsd: 1.5,
+    tags: ['jumper', 'wire', 'dupont', 'ribbon cable', 'male to male', 'male to female', 'breadboard wire', 'cable'],
+    specs: {
+      length: '20 cm (7.87 in)',
+      pitch: 'Standard 2.54mm',
+      count: '40 Pins multi-color ribbon',
+      gauge: '28 AWG Copper',
+    },
+    meshType: 'jumper_wires',
+    pins: [
+      { id: 'PIN_A', name: 'Header A', type: 'digital', position: 'left', color: '#EF4444' },
+      { id: 'PIN_B', name: 'Header B', type: 'digital', position: 'right', color: '#EF4444' },
+    ]
+  },
+  {
     id: 'solar_panel_5v',
     name: '5V 1W Monocrystalline Solar Cell Panel',
     category: 'power',
