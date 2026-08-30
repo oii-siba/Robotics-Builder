@@ -109,20 +109,18 @@ export function AuthModal() {
 
         if (error) {
           console.warn('Supabase Phone OTP notice:', error.message);
-          // If SMS provider not yet enabled in Supabase dashboard, notify user with helpful advice
-          if (error.message.includes('provider is not enabled') || error.message.includes('SMS')) {
-            setErrorMsg(`Supabase SMS Provider is not yet enabled in your dashboard. You can enable Twilio/Phone in Supabase Dashboard or enter test code.`);
-          }
+          setErrorMsg(error.message || 'SMS service notification. If testing, enter test OTP (e.g. 123456).');
+        } else {
+          setSuccessMsg(`SMS verification code sent to ${fullPhone}! Please check your phone.`);
         }
 
         setStep('otp_verify');
         setResendTimer(45);
-        setSuccessMsg(`SMS verification code sent to ${fullPhone}! Please check your phone.`);
       } catch (err: any) {
         console.warn('Supabase phone signInWithOtp exception:', err);
+        setErrorMsg(err.message || 'Enter test verification code (e.g. 123456).');
         setStep('otp_verify');
         setResendTimer(30);
-        setSuccessMsg(`Enter the verification code sent to ${fullPhone}.`);
       } finally {
         setIsLoading(false);
       }
