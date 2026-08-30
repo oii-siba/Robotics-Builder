@@ -82,6 +82,9 @@ export interface RobotPartDefinition {
     | 'module_buck_converter'
     | 'breadboard_400' 
     | 'jumper_wires'
+    | 'jumper_wires_mm'
+    | 'jumper_wires_mf'
+    | 'jumper_wires_ff'
     | 'solar_panel'
     | 'custom_box';
 }

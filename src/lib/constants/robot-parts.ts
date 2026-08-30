@@ -814,24 +814,66 @@ export const ROBOT_PARTS_CATALOG: RobotPartDefinition[] = [
     ]
   },
   {
-    id: 'jumper_wires_40p',
-    name: '40-Pin Rainbow Dupont Jumper Wires',
+    id: 'jumper_wires_mm_40p',
+    name: '40-Pin Male-to-Male (M-M) Dupont Jumper Wires',
     category: 'accessories',
-    description: 'Multi-color flexible 20cm Dupont jumper wires (M-M / M-F) for breadboard prototyping and sensor wiring.',
+    description: '20cm flexible multi-color Male-to-Male ribbon jumper cables for breadboard tie-points and Arduino sockets.',
     dimensions: [120, 10, 30],
     defaultColor: '#EF4444',
     approxPriceUsd: 1.5,
-    tags: ['jumper', 'wire', 'dupont', 'ribbon cable', 'male to male', 'male to female', 'breadboard wire', 'cable'],
+    tags: ['jumper', 'wire', 'dupont', 'male to male', 'm-m', 'ribbon cable', 'breadboard wire'],
     specs: {
+      type: 'Male to Male (M-M)',
       length: '20 cm (7.87 in)',
-      pitch: 'Standard 2.54mm',
-      count: '40 Pins multi-color ribbon',
-      gauge: '28 AWG Copper',
+      pitch: '2.54mm Standard Header',
+      count: '40-Pin Multi-color Ribbon',
     },
-    meshType: 'jumper_wires',
+    meshType: 'jumper_wires_mm',
     pins: [
-      { id: 'PIN_A', name: 'Header A', type: 'digital', position: 'left', color: '#EF4444' },
-      { id: 'PIN_B', name: 'Header B', type: 'digital', position: 'right', color: '#EF4444' },
+      { id: 'MALE_A', name: 'Male Header A', type: 'digital', position: 'left', color: '#EF4444' },
+      { id: 'MALE_B', name: 'Male Header B', type: 'digital', position: 'right', color: '#EF4444' },
+    ]
+  },
+  {
+    id: 'jumper_wires_mf_40p',
+    name: '40-Pin Male-to-Female (M-F) Dupont Jumper Wires',
+    category: 'accessories',
+    description: '20cm flexible Male-to-Female Dupont cables for connecting sensor pin headers to microcontroller breadboards.',
+    dimensions: [120, 10, 30],
+    defaultColor: '#EAB308',
+    approxPriceUsd: 1.5,
+    tags: ['jumper', 'wire', 'dupont', 'male to female', 'm-f', 'sensor wire', 'extension cable'],
+    specs: {
+      type: 'Male to Female (M-F)',
+      length: '20 cm',
+      pitch: '2.54mm Standard Header',
+      count: '40-Pin Multi-color Ribbon',
+    },
+    meshType: 'jumper_wires_mf',
+    pins: [
+      { id: 'MALE_A', name: 'Male Header A', type: 'digital', position: 'left', color: '#EAB308' },
+      { id: 'FEMALE_B', name: 'Female Socket B', type: 'digital', position: 'right', color: '#EAB308' },
+    ]
+  },
+  {
+    id: 'jumper_wires_ff_40p',
+    name: '40-Pin Female-to-Female (F-F) Dupont Jumper Wires',
+    category: 'accessories',
+    description: '20cm flexible Female-to-Female Dupont socket cables for module-to-module and header-to-header connection.',
+    dimensions: [120, 10, 30],
+    defaultColor: '#A855F7',
+    approxPriceUsd: 1.5,
+    tags: ['jumper', 'wire', 'dupont', 'female to female', 'f-f', 'socket cable', 'board to board'],
+    specs: {
+      type: 'Female to Female (F-F)',
+      length: '20 cm',
+      pitch: '2.54mm Standard Header',
+      count: '40-Pin Multi-color Ribbon',
+    },
+    meshType: 'jumper_wires_ff',
+    pins: [
+      { id: 'FEMALE_A', name: 'Female Socket A', type: 'digital', position: 'left', color: '#A855F7' },
+      { id: 'FEMALE_B', name: 'Female Socket B', type: 'digital', position: 'right', color: '#A855F7' },
     ]
   },
   {

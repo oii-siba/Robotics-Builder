@@ -455,7 +455,8 @@ export function PartMesh({ part, isSelected, isWireframe = false, onClick }: Par
         );
 
       // ================= JUMPER WIRES =================
-      case 'jumper_wires': {
+      case 'jumper_wires':
+      case 'jumper_wires_mm': {
         const rainbowColors = ['#EF4444', '#F97316', '#EAB308', '#10B981', '#06B6D4', '#3B82F6', '#8B5CF6', '#1E293B'];
         return (
           <group>
@@ -464,7 +465,6 @@ export function PartMesh({ part, isSelected, isWireframe = false, onClick }: Par
               const offsetZ = (idx - 3.5) * 0.08;
               return (
                 <group key={idx} position={[0, 0, offsetZ]}>
-                  {/* Arched flexible wire segment */}
                   <mesh position={[0, 0.08, 0]} castShadow>
                     <cylinderGeometry args={[0.02, 0.02, 1.2, 12]} />
                     <meshStandardMaterial color={col} roughness={0.5} wireframe={isWireframe} />
@@ -478,7 +478,7 @@ export function PartMesh({ part, isSelected, isWireframe = false, onClick }: Par
               <boxGeometry args={[0.18, 0.14, 0.72]} />
               <meshStandardMaterial color="#0F172A" roughness={0.7} />
             </mesh>
-            {/* Left Silver Terminal Pins */}
+            {/* Left Silver Male Terminal Pins */}
             <mesh position={[-0.78, 0.08, 0]}>
               <boxGeometry args={[0.08, 0.04, 0.65]} />
               <meshStandardMaterial color="#E2E8F0" metalness={0.9} roughness={0.2} />
@@ -489,10 +489,90 @@ export function PartMesh({ part, isSelected, isWireframe = false, onClick }: Par
               <boxGeometry args={[0.18, 0.14, 0.72]} />
               <meshStandardMaterial color="#0F172A" roughness={0.7} />
             </mesh>
-            {/* Right Silver Terminal Pins */}
+            {/* Right Silver Male Terminal Pins */}
             <mesh position={[0.78, 0.08, 0]}>
               <boxGeometry args={[0.08, 0.04, 0.65]} />
               <meshStandardMaterial color="#E2E8F0" metalness={0.9} roughness={0.2} />
+            </mesh>
+          </group>
+        );
+      }
+
+      case 'jumper_wires_mf': {
+        const rainbowColors = ['#EAB308', '#F97316', '#EF4444', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#1E293B'];
+        return (
+          <group>
+            {/* Rainbow Ribbon Wire Strands */}
+            {rainbowColors.map((col, idx) => {
+              const offsetZ = (idx - 3.5) * 0.08;
+              return (
+                <group key={idx} position={[0, 0, offsetZ]}>
+                  <mesh position={[0, 0.08, 0]} castShadow>
+                    <cylinderGeometry args={[0.02, 0.02, 1.2, 12]} />
+                    <meshStandardMaterial color={col} roughness={0.5} wireframe={isWireframe} />
+                  </mesh>
+                </group>
+              );
+            })}
+
+            {/* Left Male Connector Housing & Pins */}
+            <mesh position={[-0.65, 0.08, 0]} castShadow>
+              <boxGeometry args={[0.18, 0.14, 0.72]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.7} />
+            </mesh>
+            <mesh position={[-0.78, 0.08, 0]}>
+              <boxGeometry args={[0.08, 0.04, 0.65]} />
+              <meshStandardMaterial color="#E2E8F0" metalness={0.9} roughness={0.2} />
+            </mesh>
+
+            {/* Right Female Socket Connector Block */}
+            <mesh position={[0.68, 0.08, 0]} castShadow>
+              <boxGeometry args={[0.22, 0.15, 0.74]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.7} />
+            </mesh>
+            <mesh position={[0.79, 0.08, 0]}>
+              <boxGeometry args={[0.01, 0.08, 0.65]} />
+              <meshStandardMaterial color="#000000" roughness={0.9} />
+            </mesh>
+          </group>
+        );
+      }
+
+      case 'jumper_wires_ff': {
+        const rainbowColors = ['#A855F7', '#3B82F6', '#06B6D4', '#10B981', '#EAB308', '#F97316', '#EF4444', '#1E293B'];
+        return (
+          <group>
+            {/* Rainbow Ribbon Wire Strands */}
+            {rainbowColors.map((col, idx) => {
+              const offsetZ = (idx - 3.5) * 0.08;
+              return (
+                <group key={idx} position={[0, 0, offsetZ]}>
+                  <mesh position={[0, 0.08, 0]} castShadow>
+                    <cylinderGeometry args={[0.02, 0.02, 1.2, 12]} />
+                    <meshStandardMaterial color={col} roughness={0.5} wireframe={isWireframe} />
+                  </mesh>
+                </group>
+              );
+            })}
+
+            {/* Left Female Socket Block */}
+            <mesh position={[-0.68, 0.08, 0]} castShadow>
+              <boxGeometry args={[0.22, 0.15, 0.74]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.7} />
+            </mesh>
+            <mesh position={[-0.79, 0.08, 0]}>
+              <boxGeometry args={[0.01, 0.08, 0.65]} />
+              <meshStandardMaterial color="#000000" roughness={0.9} />
+            </mesh>
+
+            {/* Right Female Socket Block */}
+            <mesh position={[0.68, 0.08, 0]} castShadow>
+              <boxGeometry args={[0.22, 0.15, 0.74]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.7} />
+            </mesh>
+            <mesh position={[0.79, 0.08, 0]}>
+              <boxGeometry args={[0.01, 0.08, 0.65]} />
+              <meshStandardMaterial color="#000000" roughness={0.9} />
             </mesh>
           </group>
         );

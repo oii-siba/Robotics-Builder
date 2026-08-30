@@ -918,38 +918,126 @@ export const CIRCUIT_COMPONENTS_LIBRARY: CircuitComponentDef[] = [
       { id: 'BOT_VCC_R', name: 'Bot + (5V)', type: 'power-5v', x: 360, y: 192, side: 'bottom', color: '#EF4444' },
     ]
   },
+  // ---------------- MALE-TO-MALE (M-M) ----------------
   {
-    id: 'jumper_wire_dupont',
-    name: 'Dupont Jumper Wire (M-M)',
+    id: 'jumper_wire_mm_red',
+    name: 'Male-to-Male Jumper Wire (Red)',
     category: 'prototyping',
-    subcategory: 'Jumper Wires',
-    prefix: 'W',
+    subcategory: 'Jumper Wires (M-M)',
+    prefix: 'W_MM',
     width: 140,
     height: 40,
     bodyColor: '#EF4444',
-    accentColor: '#1E293B',
-    description: '20cm Flexible Male-to-Male Dupont Jumper Wire for Breadboard & Prototyping',
-    renderType: 'jumper_wire',
+    accentColor: '#DC2626',
+    description: '20cm Male-to-Male Dupont Jumper Cable for Breadboard-to-Breadboard / Arduino Pin Header',
+    renderType: 'jumper_wire_mm',
     pins: [
-      { id: 'PIN_A', name: 'Tip A', type: 'digital', x: 6, y: 20, side: 'left', color: '#EF4444' },
-      { id: 'PIN_B', name: 'Tip B', type: 'digital', x: 134, y: 20, side: 'right', color: '#EF4444' },
+      { id: 'MALE_A', name: 'Male Pin A', type: 'power-5v', x: 6, y: 20, side: 'left', color: '#EF4444' },
+      { id: 'MALE_B', name: 'Male Pin B', type: 'power-5v', x: 134, y: 20, side: 'right', color: '#EF4444' },
     ]
   },
   {
-    id: 'jumper_wire_black_gnd',
-    name: 'GND Jumper Wire (Black)',
+    id: 'jumper_wire_mm_black',
+    name: 'Male-to-Male Jumper Wire (Black)',
     category: 'prototyping',
-    subcategory: 'Jumper Wires',
-    prefix: 'W',
+    subcategory: 'Jumper Wires (M-M)',
+    prefix: 'W_MM',
     width: 140,
     height: 40,
     bodyColor: '#1F2937',
     accentColor: '#111827',
-    description: 'Black Ground Return Dupont Jumper Wire',
-    renderType: 'jumper_wire',
+    description: '20cm Male-to-Male Black Ground Dupont Wire',
+    renderType: 'jumper_wire_mm',
     pins: [
-      { id: 'PIN_A', name: 'GND A', type: 'ground', x: 6, y: 20, side: 'left', color: '#1F2937' },
-      { id: 'PIN_B', name: 'GND B', type: 'ground', x: 134, y: 20, side: 'right', color: '#1F2937' },
+      { id: 'MALE_A', name: 'Male GND A', type: 'ground', x: 6, y: 20, side: 'left', color: '#1F2937' },
+      { id: 'MALE_B', name: 'Male GND B', type: 'ground', x: 134, y: 20, side: 'right', color: '#1F2937' },
+    ]
+  },
+  {
+    id: 'jumper_wire_mm_blue',
+    name: 'Male-to-Male Jumper Wire (Blue)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires (M-M)',
+    prefix: 'W_MM',
+    width: 140,
+    height: 40,
+    bodyColor: '#3B82F6',
+    accentColor: '#2563EB',
+    description: '20cm Male-to-Male Blue Signal Dupont Wire',
+    renderType: 'jumper_wire_mm',
+    pins: [
+      { id: 'MALE_A', name: 'Male Pin A', type: 'digital', x: 6, y: 20, side: 'left', color: '#3B82F6' },
+      { id: 'MALE_B', name: 'Male Pin B', type: 'digital', x: 134, y: 20, side: 'right', color: '#3B82F6' },
+    ]
+  },
+  // ---------------- MALE-TO-FEMALE (M-F) ----------------
+  {
+    id: 'jumper_wire_mf_yellow',
+    name: 'Male-to-Female Jumper Wire (Yellow)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires (M-F)',
+    prefix: 'W_MF',
+    width: 140,
+    height: 40,
+    bodyColor: '#EAB308',
+    accentColor: '#CA8A04',
+    description: '20cm Male-to-Female Dupont Wire for connecting sensor headers to breadboard/MCU',
+    renderType: 'jumper_wire_mf',
+    pins: [
+      { id: 'MALE_A', name: 'Male Pin', type: 'digital', x: 6, y: 20, side: 'left', color: '#EAB308' },
+      { id: 'FEMALE_B', name: 'Female Socket', type: 'digital', x: 134, y: 20, side: 'right', color: '#EAB308' },
+    ]
+  },
+  {
+    id: 'jumper_wire_mf_green',
+    name: 'Male-to-Female Jumper Wire (Green)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires (M-F)',
+    prefix: 'W_MF',
+    width: 140,
+    height: 40,
+    bodyColor: '#10B981',
+    accentColor: '#059669',
+    description: '20cm Male-to-Female Green Signal Dupont Wire',
+    renderType: 'jumper_wire_mf',
+    pins: [
+      { id: 'MALE_A', name: 'Male Pin', type: 'digital', x: 6, y: 20, side: 'left', color: '#10B981' },
+      { id: 'FEMALE_B', name: 'Female Socket', type: 'digital', x: 134, y: 20, side: 'right', color: '#10B981' },
+    ]
+  },
+  // ---------------- FEMALE-TO-FEMALE (F-F) ----------------
+  {
+    id: 'jumper_wire_ff_purple',
+    name: 'Female-to-Female Jumper Wire (Purple)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires (F-F)',
+    prefix: 'W_FF',
+    width: 140,
+    height: 40,
+    bodyColor: '#A855F7',
+    accentColor: '#9333EA',
+    description: '20cm Female-to-Female Dupont Wire for board-to-board header interconnection',
+    renderType: 'jumper_wire_ff',
+    pins: [
+      { id: 'FEMALE_A', name: 'Female Socket A', type: 'digital', x: 6, y: 20, side: 'left', color: '#A855F7' },
+      { id: 'FEMALE_B', name: 'Female Socket B', type: 'digital', x: 134, y: 20, side: 'right', color: '#A855F7' },
+    ]
+  },
+  {
+    id: 'jumper_wire_ff_white',
+    name: 'Female-to-Female Jumper Wire (White)',
+    category: 'prototyping',
+    subcategory: 'Jumper Wires (F-F)',
+    prefix: 'W_FF',
+    width: 140,
+    height: 40,
+    bodyColor: '#F8FAFC',
+    accentColor: '#CBD5E1',
+    description: '20cm Female-to-Female White Signal Dupont Wire',
+    renderType: 'jumper_wire_ff',
+    pins: [
+      { id: 'FEMALE_A', name: 'Female Socket A', type: 'digital', x: 6, y: 20, side: 'left', color: '#64748B' },
+      { id: 'FEMALE_B', name: 'Female Socket B', type: 'digital', x: 134, y: 20, side: 'right', color: '#64748B' },
     ]
   }
 ];

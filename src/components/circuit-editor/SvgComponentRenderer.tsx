@@ -550,45 +550,126 @@ export function SvgComponentRenderer({
       }
 
       // =========================================================================
-      // 12. REALISTIC DUPONT JUMPER WIRE (M-M)
+      // 12. REALISTIC DUPONT JUMPER WIRES (M-M, M-F, F-F)
       // =========================================================================
-      case 'jumper_wire': {
+      case 'jumper_wire':
+      case 'jumper_wire_mm': {
         const wireColor = def.bodyColor || '#EF4444';
         return (
           <g>
-            {/* Flexible Silicone Wire Body with 3D Highlight Glare */}
+            {/* Flexible Silicone Wire Body with 3D Specular Highlight */}
             <path
-              d="M 24 20 C 52 2, 88 38, 116 20"
+              d="M 26 20 C 54 2, 86 38, 114 20"
               fill="none"
               stroke={wireColor}
-              strokeWidth={6}
+              strokeWidth={6.5}
               strokeLinecap="round"
-              filter="drop-shadow(0 3px 5px rgba(0,0,0,0.4))"
+              filter="drop-shadow(0 3px 6px rgba(0,0,0,0.45))"
             />
             <path
-              d="M 24 20 C 52 2, 88 38, 116 20"
+              d="M 26 19 C 54 3, 86 37, 114 19"
               fill="none"
               stroke="#FFFFFF"
-              strokeWidth={1.5}
-              opacity={0.35}
+              strokeWidth={1.8}
+              opacity={0.4}
               strokeLinecap="round"
             />
 
-            {/* Left Dupont Connector Housing Boot */}
-            <rect x={12} y={12} width={15} height={16} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
-            <rect x={15} y={16} width={4} height={8} rx={1} fill="#0F172A" />
-            <line x1={20} y1={12} x2={20} y2={28} stroke="#334155" strokeWidth={0.8} />
+            {/* Left Male Dupont Boot & Strain Relief */}
+            <rect x={12} y={11} width={16} height={18} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={15} y={15} width={4} height={10} rx={1} fill="#0A0E17" />
+            <line x1={22} y1={11} x2={22} y2={29} stroke="#334155" strokeWidth={1} />
+            {/* Left Protruding Silver Male Pin */}
+            <rect x={2} y={18} width={10} height={4} rx={0.6} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.8} />
+            <polygon points="2,18 4,18 2,20" fill="#CBD5E1" />
 
-            {/* Left Silver Metal Pin Tip */}
-            <rect x={2} y={18.5} width={10} height={3} rx={0.5} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.6} />
+            {/* Right Male Dupont Boot & Strain Relief */}
+            <rect x={112} y={11} width={16} height={18} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={121} y={15} width={4} height={10} rx={1} fill="#0A0E17" />
+            <line x1={118} y1={11} x2={118} y2={29} stroke="#334155" strokeWidth={1} />
+            {/* Right Protruding Silver Male Pin */}
+            <rect x={128} y={18} width={10} height={4} rx={0.6} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.8} />
+            <polygon points="138,18 136,18 138,20" fill="#CBD5E1" />
+          </g>
+        );
+      }
 
-            {/* Right Dupont Connector Housing Boot */}
-            <rect x={113} y={12} width={15} height={16} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
-            <rect x={121} y={16} width={4} height={8} rx={1} fill="#0F172A" />
-            <line x1={120} y1={12} x2={120} y2={28} stroke="#334155" strokeWidth={0.8} />
+      case 'jumper_wire_mf': {
+        const wireColor = def.bodyColor || '#EAB308';
+        return (
+          <g>
+            {/* Flexible Silicone Wire Body with 3D Specular Highlight */}
+            <path
+              d="M 26 20 C 54 2, 86 38, 114 20"
+              fill="none"
+              stroke={wireColor}
+              strokeWidth={6.5}
+              strokeLinecap="round"
+              filter="drop-shadow(0 3px 6px rgba(0,0,0,0.45))"
+            />
+            <path
+              d="M 26 19 C 54 3, 86 37, 114 19"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth={1.8}
+              opacity={0.4}
+              strokeLinecap="round"
+            />
 
-            {/* Right Silver Metal Pin Tip */}
-            <rect x={128} y={18.5} width={10} height={3} rx={0.5} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.6} />
+            {/* Left Male Connector */}
+            <rect x={12} y={11} width={16} height={18} rx={2} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={15} y={15} width={4} height={10} rx={1} fill="#0A0E17" />
+            <line x1={22} y1={11} x2={22} y2={29} stroke="#334155" strokeWidth={1} />
+            <rect x={2} y={18} width={10} height={4} rx={0.6} fill="#E2E8F0" stroke="#94A3B8" strokeWidth={0.8} />
+
+            {/* Right Female Socket Connector (Longer Black Dupont Sleeve with Entry Socket) */}
+            <rect x={112} y={10} width={22} height={20} rx={2.5} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={120} y={14} width={5} height={12} rx={1} fill="#0F172A" />
+            <line x1={116} y1={10} x2={116} y2={30} stroke="#334155" strokeWidth={1} />
+            {/* Female Receptacle Entry Cavity & Contact Spring */}
+            <rect x={131} y={16} width={3} height={8} rx={0.5} fill="#0A0E17" stroke="#334155" strokeWidth={0.5} />
+            <rect x={132} y={18} width={1.5} height={4} fill="#D97706" />
+          </g>
+        );
+      }
+
+      case 'jumper_wire_ff': {
+        const wireColor = def.bodyColor || '#A855F7';
+        return (
+          <g>
+            {/* Flexible Silicone Wire Body with 3D Specular Highlight */}
+            <path
+              d="M 28 20 C 54 2, 86 38, 112 20"
+              fill="none"
+              stroke={wireColor}
+              strokeWidth={6.5}
+              strokeLinecap="round"
+              filter="drop-shadow(0 3px 6px rgba(0,0,0,0.45))"
+            />
+            <path
+              d="M 28 19 C 54 3, 86 37, 112 19"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth={1.8}
+              opacity={0.4}
+              strokeLinecap="round"
+            />
+
+            {/* Left Female Socket Connector */}
+            <rect x={6} y={10} width={22} height={20} rx={2.5} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={15} y={14} width={5} height={12} rx={1} fill="#0F172A" />
+            <line x1={24} y1={10} x2={24} y2={30} stroke="#334155" strokeWidth={1} />
+            {/* Left Female Entry Cavity */}
+            <rect x={6} y={16} width={3} height={8} rx={0.5} fill="#0A0E17" stroke="#334155" strokeWidth={0.5} />
+            <rect x={6.5} y={18} width={1.5} height={4} fill="#D97706" />
+
+            {/* Right Female Socket Connector */}
+            <rect x={112} y={10} width={22} height={20} rx={2.5} fill="#1E293B" stroke="#0F172A" strokeWidth={1.2} />
+            <rect x={120} y={14} width={5} height={12} rx={1} fill="#0F172A" />
+            <line x1={116} y1={10} x2={116} y2={30} stroke="#334155" strokeWidth={1} />
+            {/* Right Female Entry Cavity */}
+            <rect x={131} y={16} width={3} height={8} rx={0.5} fill="#0A0E17" stroke="#334155" strokeWidth={0.5} />
+            <rect x={132} y={18} width={1.5} height={4} fill="#D97706" />
           </g>
         );
       }
