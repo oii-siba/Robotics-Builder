@@ -89,7 +89,10 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/logo.png", type: "image/png" },
+      { url: "/favicon.ico", type: "image/x-icon" },
+    ],
     shortcut: "/logo.png",
     apple: "/logo.png",
   },
@@ -136,6 +139,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <head>
+        <link rel="icon" href="/logo.png" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
