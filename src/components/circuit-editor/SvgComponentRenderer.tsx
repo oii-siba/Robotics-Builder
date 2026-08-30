@@ -358,22 +358,197 @@ export function SvgComponentRenderer({
         );
 
       // =========================================================================
-      // 10. REALISTIC 5MM LED (Glossy Lens)
+      // 11. REALISTIC 400-TIE POINT HALF-SIZE BREADBOARD
       // =========================================================================
-      case 'led':
+      case 'breadboard_400': {
+        const cols = Array.from({ length: 30 }, (_, i) => i);
+        const topPowerY1 = 18;
+        const topPowerY2 = 28;
+        const topRows = [
+          { label: 'j', y: 62 },
+          { label: 'i', y: 70 },
+          { label: 'h', y: 78 },
+          { label: 'g', y: 86 },
+          { label: 'f', y: 94 },
+        ];
+        const botRows = [
+          { label: 'e', y: 118 },
+          { label: 'd', y: 126 },
+          { label: 'c', y: 134 },
+          { label: 'b', y: 142 },
+          { label: 'a', y: 150 },
+        ];
+        const botPowerY1 = 178;
+        const botPowerY2 = 188;
+
+        const getColX = (colIdx: number) => 36 + colIdx * 10 + Math.floor(colIdx / 5) * 6;
+
         return (
           <g>
-            {/* Silver Leads */}
-            <line x1={0} y1={height / 2} x2={20} y2={height / 2} stroke="#CBD5E1" strokeWidth={2} />
-            <line x1={width - 20} y1={height / 2} x2={width} y2={height / 2} stroke="#CBD5E1" strokeWidth={2} />
-            {/* Bulb Rim Base */}
-            <rect x={20} y={height / 2 - 14} width={8} height={28} rx={2} fill="#DC2626" stroke="#991B1B" strokeWidth={1} />
-            {/* Translucent Glowing Dome */}
-            <path d={`M 26 ${height / 2 - 12} C 55 ${height / 2 - 12}, 55 ${height / 2 + 12}, 26 ${height / 2 + 12} Z`} fill="#EF4444" stroke="#B91C1C" strokeWidth={1.5} filter="drop-shadow(0 0 6px rgba(239,68,68,0.7))" />
-            {/* Highlight Glass Glare */}
-            <path d={`M 30 ${height / 2 - 6} C 42 ${height / 2 - 6}, 42 ${height / 2 - 2}, 30 ${height / 2 - 2} Z`} fill="#FFFFFF" opacity={0.6} />
+            {/* Interlocking Connection Tabs (Left edge & Top edge) */}
+            <circle cx={-3} cy={28} r={5} fill="#F1F3F5" stroke="#D1D5DB" strokeWidth={1} />
+            <circle cx={-3} cy={106} r={5} fill="#F1F3F5" stroke="#D1D5DB" strokeWidth={1} />
+            <circle cx={-3} cy={182} r={5} fill="#F1F3F5" stroke="#D1D5DB" strokeWidth={1} />
+            <circle cx={72} cy={-3} r={5} fill="#F1F3F5" stroke="#D1D5DB" strokeWidth={1} />
+            <circle cx={308} cy={-3} r={5} fill="#F1F3F5" stroke="#D1D5DB" strokeWidth={1} />
+
+            {/* Main Breadboard Off-White Body */}
+            <rect
+              x={0}
+              y={0}
+              width={width}
+              height={height}
+              rx={6}
+              fill="#FAF9F6"
+              stroke="#D1D5DB"
+              strokeWidth={1.5}
+              filter="drop-shadow(0 4px 10px rgba(0,0,0,0.35))"
+            />
+
+            {/* Sub-block Grooves / Section Separators */}
+            <line x1={0} y1={46} x2={width} y2={46} stroke="#E5E7EB" strokeWidth={1} />
+            <line x1={0} y1={162} x2={width} y2={162} stroke="#E5E7EB" strokeWidth={1} />
+
+            {/* Central IC DIP Ravine Divider */}
+            <rect x={0} y={103} width={width} height={8} fill="#E5E7EB" stroke="#D1D5DB" strokeWidth={0.5} />
+            <line x1={0} y1={103} x2={width} y2={103} stroke="#9CA3AF" strokeWidth={0.5} opacity={0.6} />
+            <line x1={0} y1={111} x2={width} y2={111} stroke="#FFFFFF" strokeWidth={0.5} opacity={0.8} />
+
+            {/* ================= TOP POWER RAILS ================= */}
+            {/* Top Negative Rail (Blue) */}
+            <line x1={32} y1={10} x2={348} y2={10} stroke="#38BDF8" strokeWidth={1.5} strokeLinecap="round" />
+            <text x={16} y={14} fill="#0284C7" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">−</text>
+            <text x={364} y={14} fill="#0284C7" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">−</text>
+
+            {/* Top Positive Rail (Red) */}
+            <line x1={32} y1={36} x2={348} y2={36} stroke="#EF4444" strokeWidth={1.5} strokeLinecap="round" />
+            <text x={16} y={40} fill="#DC2626" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">+</text>
+            <text x={364} y={40} fill="#DC2626" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">+</text>
+
+            {/* Top Power Tie Points */}
+            {cols.map((c) => {
+              const x = getColX(c);
+              return (
+                <g key={`top-pwr-${c}`}>
+                  {/* Top (-) Power Hole */}
+                  <rect x={x - 2.5} y={topPowerY1 - 2.5} width={5} height={5} rx={0.8} fill="#1E293B" stroke="#CBD5E1" strokeWidth={0.5} />
+                  <rect x={x - 1} y={topPowerY1 - 1} width={2} height={2} fill="#94A3B8" />
+                  {/* Top (+) Power Hole */}
+                  <rect x={x - 2.5} y={topPowerY2 - 2.5} width={5} height={5} rx={0.8} fill="#1E293B" stroke="#CBD5E1" strokeWidth={0.5} />
+                  <rect x={x - 1} y={topPowerY2 - 1} width={2} height={2} fill="#94A3B8" />
+                </g>
+              );
+            })}
+
+            {/* ================= TOP TERMINAL STRIP (f-j) ================= */}
+            {/* Top Column Number Labels */}
+            {cols.map((c) => (
+              <text
+                key={`top-num-${c}`}
+                x={getColX(c)}
+                y={54}
+                fill="#64748B"
+                fontSize={5.5}
+                fontWeight="bold"
+                textAnchor="middle"
+                fontFamily="monospace"
+              >
+                {c + 1}
+              </text>
+            ))}
+
+            {/* Left & Right Row Labels (f to j) */}
+            {topRows.map((r) => (
+              <g key={`top-row-lbl-${r.label}`}>
+                <text x={20} y={r.y + 2.5} fill="#64748B" fontSize={7.5} fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                  {r.label}
+                </text>
+                <text x={360} y={r.y + 2.5} fill="#64748B" fontSize={7.5} fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                  {r.label}
+                </text>
+              </g>
+            ))}
+
+            {/* 5x30 Top Tie Points */}
+            {cols.map((c) => {
+              const x = getColX(c);
+              return topRows.map((r) => (
+                <g key={`top-hole-${c}-${r.label}`}>
+                  <rect x={x - 2.5} y={r.y - 2.5} width={5} height={5} rx={0.8} fill="#1E293B" stroke="#CBD5E1" strokeWidth={0.5} />
+                  <rect x={x - 1} y={r.y - 1} width={2} height={2} fill="#94A3B8" />
+                </g>
+              ));
+            })}
+
+            {/* ================= BOTTOM TERMINAL STRIP (a-e) ================= */}
+            {/* Left & Right Row Labels (a to e) */}
+            {botRows.map((r) => (
+              <g key={`bot-row-lbl-${r.label}`}>
+                <text x={20} y={r.y + 2.5} fill="#64748B" fontSize={7.5} fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                  {r.label}
+                </text>
+                <text x={360} y={r.y + 2.5} fill="#64748B" fontSize={7.5} fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                  {r.label}
+                </text>
+              </g>
+            ))}
+
+            {/* 5x30 Bottom Tie Points */}
+            {cols.map((c) => {
+              const x = getColX(c);
+              return botRows.map((r) => (
+                <g key={`bot-hole-${c}-${r.label}`}>
+                  <rect x={x - 2.5} y={r.y - 2.5} width={5} height={5} rx={0.8} fill="#1E293B" stroke="#CBD5E1" strokeWidth={0.5} />
+                  <rect x={x - 1} y={r.y - 1} width={2} height={2} fill="#94A3B8" />
+                </g>
+              ));
+            })}
+
+            {/* Bottom Column Number Labels */}
+            {cols.map((c) => (
+              <text
+                key={`bot-num-${c}`}
+                x={getColX(c)}
+                y={159}
+                fill="#64748B"
+                fontSize={5.5}
+                fontWeight="bold"
+                textAnchor="middle"
+                fontFamily="monospace"
+              >
+                {c + 1}
+              </text>
+            ))}
+
+            {/* ================= BOTTOM POWER RAILS ================= */}
+            {/* Bottom Negative Rail (Blue) */}
+            <line x1={32} y1={170} x2={348} y2={170} stroke="#38BDF8" strokeWidth={1.5} strokeLinecap="round" />
+            <text x={16} y={174} fill="#0284C7" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">−</text>
+            <text x={364} y={174} fill="#0284C7" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">−</text>
+
+            {/* Bottom Positive Rail (Red) */}
+            <line x1={32} y1={196} x2={348} y2={196} stroke="#EF4444" strokeWidth={1.5} strokeLinecap="round" />
+            <text x={16} y={200} fill="#DC2626" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">+</text>
+            <text x={364} y={200} fill="#DC2626" fontSize={13} fontWeight="900" textAnchor="middle" fontFamily="sans-serif">+</text>
+
+            {/* Bottom Power Tie Points */}
+            {cols.map((c) => {
+              const x = getColX(c);
+              return (
+                <g key={`bot-pwr-${c}`}>
+                  {/* Bottom (-) Power Hole */}
+                  <rect x={x - 2.5} y={botPowerY1 - 2.5} width={5} height={5} rx={0.8} fill="#1E293B" stroke="#CBD5E1" strokeWidth={0.5} />
+                  <rect x={x - 1} y={botPowerY1 - 1} width={2} height={2} fill="#94A3B8" />
+                  {/* Bottom (+) Power Hole */}
+                  <rect x={x - 2.5} y={botPowerY2 - 2.5} width={5} height={5} rx={0.8} fill="#1E293B" stroke="#CBD5E1" strokeWidth={0.5} />
+                  <rect x={x - 1} y={botPowerY2 - 1} width={2} height={2} fill="#94A3B8" />
+                </g>
+              );
+            })}
           </g>
         );
+      }
+
 
       // =========================================================================
       // DEFAULT REALISTIC CHIP IC

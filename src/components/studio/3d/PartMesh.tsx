@@ -393,24 +393,64 @@ export function PartMesh({ part, isSelected, isWireframe = false, onClick }: Par
       case 'breadboard_400':
         return (
           <group>
-            <mesh position={[0, 0.05, 0]} castShadow receiveShadow>
-              <boxGeometry args={[1.6, 0.08, 1.1]} />
-              <meshStandardMaterial color="#F8FAFC" roughness={0.3} wireframe={isWireframe} />
+            {/* Main Breadboard Body */}
+            <mesh position={[0, 0.04, 0]} castShadow receiveShadow>
+              <boxGeometry args={[1.65, 0.08, 1.1]} />
+              <meshStandardMaterial color="#FAF9F6" roughness={0.3} wireframe={isWireframe} />
             </mesh>
-            {/* Center divider channel */}
-            <mesh position={[0, 0.1, 0]}>
-              <boxGeometry args={[1.5, 0.02, 0.08]} />
-              <meshStandardMaterial color="#E2E8F0" roughness={0.5} />
+            {/* Side Interlocking Tabs */}
+            <mesh position={[-0.84, 0.04, -0.3]}>
+              <boxGeometry args={[0.04, 0.06, 0.08]} />
+              <meshStandardMaterial color="#F1F3F5" roughness={0.3} />
             </mesh>
-            {/* Red & Blue Power Rail lines */}
-            <mesh position={[0, 0.1, -0.45]}>
-              <boxGeometry args={[1.5, 0.01, 0.03]} />
-              <meshStandardMaterial color="#EF4444" />
+            <mesh position={[-0.84, 0.04, 0.3]}>
+              <boxGeometry args={[0.04, 0.06, 0.08]} />
+              <meshStandardMaterial color="#F1F3F5" roughness={0.3} />
             </mesh>
-            <mesh position={[0, 0.1, 0.45]}>
-              <boxGeometry args={[1.5, 0.01, 0.03]} />
-              <meshStandardMaterial color="#3B82F6" />
+            <mesh position={[-0.3, 0.04, -0.56]}>
+              <boxGeometry args={[0.08, 0.06, 0.04]} />
+              <meshStandardMaterial color="#F1F3F5" roughness={0.3} />
             </mesh>
+            <mesh position={[0.3, 0.04, -0.56]}>
+              <boxGeometry args={[0.08, 0.06, 0.04]} />
+              <meshStandardMaterial color="#F1F3F5" roughness={0.3} />
+            </mesh>
+            {/* Center IC Divider Trough */}
+            <mesh position={[0, 0.082, 0]}>
+              <boxGeometry args={[1.6, 0.005, 0.08]} />
+              <meshStandardMaterial color="#E2E8F0" roughness={0.6} />
+            </mesh>
+            {/* Top Power Rails (Blue - & Red +) */}
+            <mesh position={[0, 0.082, -0.48]}>
+              <boxGeometry args={[1.5, 0.005, 0.02]} />
+              <meshStandardMaterial color="#38BDF8" roughness={0.4} />
+            </mesh>
+            <mesh position={[0, 0.082, -0.38]}>
+              <boxGeometry args={[1.5, 0.005, 0.02]} />
+              <meshStandardMaterial color="#EF4444" roughness={0.4} />
+            </mesh>
+            {/* Bottom Power Rails (Blue - & Red +) */}
+            <mesh position={[0, 0.082, 0.38]}>
+              <boxGeometry args={[1.5, 0.005, 0.02]} />
+              <meshStandardMaterial color="#38BDF8" roughness={0.4} />
+            </mesh>
+            <mesh position={[0, 0.082, 0.48]}>
+              <boxGeometry args={[1.5, 0.005, 0.02]} />
+              <meshStandardMaterial color="#EF4444" roughness={0.4} />
+            </mesh>
+            {/* Array of Tie-point grid holes */}
+            {[-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6].map((gx, idx) => (
+              <group key={idx} position={[gx, 0.082, 0]}>
+                <mesh position={[0, 0, -0.2]}>
+                  <boxGeometry args={[0.12, 0.004, 0.2]} />
+                  <meshStandardMaterial color="#1E293B" roughness={0.8} />
+                </mesh>
+                <mesh position={[0, 0, 0.2]}>
+                  <boxGeometry args={[0.12, 0.004, 0.2]} />
+                  <meshStandardMaterial color="#1E293B" roughness={0.8} />
+                </mesh>
+              </group>
+            ))}
           </group>
         );
 

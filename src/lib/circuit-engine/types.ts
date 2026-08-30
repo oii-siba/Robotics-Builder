@@ -82,7 +82,7 @@ export interface CircuitComponentDef {
     | 'led' 
     | 'button' 
     | 'gnd_sym' 
-    | 'vcc_sym' 
+    | 'breadboard_400'
     | 'oled_display';
 }
 
