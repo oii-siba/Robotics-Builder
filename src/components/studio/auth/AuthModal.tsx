@@ -51,16 +51,39 @@ export function AuthModal() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(0);
 
-  // Sync mode with activeTab on open
+  // Sync mode and clear sensitive fields on modal open
   useEffect(() => {
     if (isOpen) {
       setActiveTab(mode === 'signin' ? 'signin' : 'signup');
       setStep('form');
+      setPassword('');
+      setConfirmPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setOtpCode('');
       setErrorMsg(null);
       setSuccessMsg(null);
+    } else {
+      setPassword('');
+      setConfirmPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
       setOtpCode('');
     }
   }, [isOpen, mode]);
+
+  // Tab switcher helper that clears password fields
+  const handleTabSwitch = (tab: 'signup' | 'signin' | 'forgot') => {
+    setActiveTab(tab);
+    setStep('form');
+    setPassword('');
+    setConfirmPassword('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setOtpCode('');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+  };
 
   // OTP Resend countdown
   useEffect(() => {
@@ -479,10 +502,7 @@ export function AuthModal() {
               <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 gap-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveTab('signup');
-                    setErrorMsg(null);
-                  }}
+                  onClick={() => handleTabSwitch('signup')}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                     activeTab === 'signup'
                       ? 'bg-sky-500 text-white font-bold shadow-sm'
@@ -494,10 +514,7 @@ export function AuthModal() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveTab('signin');
-                    setErrorMsg(null);
-                  }}
+                  onClick={() => handleTabSwitch('signin')}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                     activeTab === 'signin'
                       ? 'bg-sky-500 text-white font-bold shadow-sm'
@@ -521,6 +538,7 @@ export function AuthModal() {
                       type="text"
                       placeholder="Alex Maker"
                       value={name}
+                      autoComplete="name"
                       onChange={(e) => setName(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                     />
@@ -536,6 +554,7 @@ export function AuthModal() {
                       required
                       placeholder="yourname@gmail.com"
                       value={email}
+                      autoComplete="email"
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                     />
@@ -553,6 +572,7 @@ export function AuthModal() {
                       minLength={6}
                       placeholder="At least 6 characters"
                       value={password}
+                      autoComplete="new-password"
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-10 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                     />
@@ -577,6 +597,7 @@ export function AuthModal() {
                       minLength={6}
                       placeholder="Re-enter password"
                       value={confirmPassword}
+                      autoComplete="new-password"
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className={`w-full bg-slate-950 border rounded-xl pl-9 pr-10 py-2 text-xs text-white placeholder-slate-500 focus:outline-none ${
                         confirmPassword && password !== confirmPassword
@@ -621,6 +642,7 @@ export function AuthModal() {
                       required
                       placeholder="yourname@gmail.com"
                       value={email}
+                      autoComplete="email"
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                     />
@@ -632,11 +654,7 @@ export function AuthModal() {
                     <label className="text-slate-400 text-[11px] font-semibold">Password</label>
                     <button
                       type="button"
-                      onClick={() => {
-                        setActiveTab('forgot');
-                        setErrorMsg(null);
-                        setSuccessMsg(null);
-                      }}
+                      onClick={() => handleTabSwitch('forgot')}
                       className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold transition-colors"
                     >
                       Forgot password?
@@ -649,6 +667,7 @@ export function AuthModal() {
                       required
                       placeholder="••••••••"
                       value={password}
+                      autoComplete="current-password"
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-10 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
                     />
